@@ -21,11 +21,21 @@ Page({
 			url: '../logs/logs'
 		})
 	},
+	bindInit: function ()
+	{
+		//
+		console.log('TTTClient:', TTTClient);
+
+		_miniappSdk = new TTTClient({ appId: 'test900572e02867fab8131651339518', userId: 654321 });
+		if (!!_miniappSdk)
+			_miniappSdk.init({ appId: 'test900572e02867fab8131651339518', userId: 654321 });
+		//
+	},
 	bindJoin: function ()
 	{
 		if (!!_miniappSdk)
 			_miniappSdk.join({
-				roomId: 123456,
+				roomId: 9876333,
 				userId: 654321,
 				onSuccess: () =>
 				{
@@ -33,7 +43,7 @@ Page({
 				},
 				onFailure: (err) =>
 				{
-					console.log('login Failed')
+					console.log('login Failed: ', err)
 				}
 			});
 	},
@@ -51,14 +61,6 @@ Page({
 	},
 	onLoad: function ()
 	{
-		//
-		console.log('TTTClient:', TTTClient);
-
-		_miniappSdk = new TTTClient({ appId: 'appId', userId: 654321 });
-		if (!!_miniappSdk)
-			_miniappSdk.init({ appId: 'appId', userId: 654321 });
-		//
-
 		if (app.globalData.userInfo)
 		{
 			this.setData({

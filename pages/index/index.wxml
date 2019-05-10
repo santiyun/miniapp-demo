@@ -8,6 +8,7 @@
     </block>
   </view>
   <view class="ctrl-area">
+    <button bindtap="bindInit" class="page-body-button" type="primary">Init</button>
     <button bindtap="bindJoin" class="page-body-button" type="primary">Join</button>
     <button bindtap="bindLeave" class="page-body-button" type="primary">Leave</button>
     <button bindtap="bindDestroy" class="page-body-button" type="primary">Destroy</button>
