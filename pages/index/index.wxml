@@ -10,6 +10,8 @@
   <view class="ctrl-area">
     <button bindtap="bindInit" class="page-body-button" type="primary">Init</button>
     <button bindtap="bindJoin" class="page-body-button" type="primary">Join</button>
+    <button bindtap="bindPublish" class="page-body-button" type="primary">Publish</button>
+    <button bindtap="bindUnpublish" class="page-body-button" type="primary">Unpublish</button>
     <button bindtap="bindLeave" class="page-body-button" type="primary">Leave</button>
     <button bindtap="bindDestroy" class="page-body-button" type="primary">Destroy</button>
   </view>

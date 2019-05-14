@@ -27,14 +27,24 @@ Page({
 		console.log('TTTClient:', TTTClient);
 
 		_miniappSdk = new TTTClient({ appId: 'test900572e02867fab8131651339518', userId: 654321 });
-		if (!!_miniappSdk)
+		if (!!_miniappSdk) {
 			_miniappSdk.init({ appId: 'test900572e02867fab8131651339518', userId: 654321 });
-		//
+			_miniappSdk.on({ event:'streamAdd', callback:this.onStreamAdd});
+			_miniappSdk.on({ event: 'streamRemove', callback: this.onStreamRemove });
+		}
+	},
+	onStreamAdd:function(id)
+	{
+		console.log('demo onStreamAdd=>', id);
+	},
+	onStreamRemove: function (id) {
+		console.log('demo onStreamRemove=>', id);
 	},
 	bindJoin: function ()
 	{
 		if (!!_miniappSdk)
 			_miniappSdk.join({
+				role:2,
 				roomId: 9876333,
 				userId: 654321,
 				onSuccess: () =>
@@ -58,6 +68,30 @@ Page({
 		console.log('bindDestroy _miniappSdk: ', _miniappSdk)
 		if (!!_miniappSdk)
 			_miniappSdk.destroy()
+	},
+	bindPublish:function ()
+	{
+		if (!!_miniappSdk)
+			_miniappSdk.publish({
+				onSuccess: () => {
+					console.log('publish OK')
+				},
+				onFailure: (err) => {
+					console.log('publish Failed: ', err)
+				}
+			});
+	},
+	bindUnpublish:function ()
+	{
+		if (!!_miniappSdk)
+			_miniappSdk.unpublish({
+				onSuccess: () => {
+					console.log('unpublish OK')
+				},
+				onFailure: (err) => {
+					console.log('unpublish Failed: ', err)
+				}
+			});
 	},
 	onLoad: function ()
 	{
