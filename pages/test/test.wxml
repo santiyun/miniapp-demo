@@ -1,0 +1,25 @@
+<!--pages/test/test.wxml-->
+<view class="content">
+  <view id="video-container" class="video-container n{{totalUser}}">
+    <block wx:for="{{media}}" wx:key="key">
+      <ttt-pusher wx:if="{{item.type === 'pusher' && !item.holding}}" id="rtc-pusher" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" url="{{item.url}}" muted="{{muted}}" beauty="{{beauty}}" debug="{{debug}}" bindpushfailed="onPusherFailed">
+      </ttt-pusher>
+      <ttt-player wx:if="{{item.type === 'player' && !item.holding}}" id="rtc-player-{{item.cid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}">
+      </ttt-player>
+    </block>
+  </view>
+</view>
+
+<view style="padding: 0rpx 20rpx;border-bottom: 1px solid rgba(0,0,0,0.1);border-top: 1px solid rgba(0,0,0,0.1);">
+  <input value="rtmp://push.3ttech.cn/sdk/miniapp-3t-stream" placeholder="推流地址 (rtmp/flv)" bindconfirm='startPushing' placeholder-style='font-size: 28rpx; color: rgba(0,0,0,0.3)' style="font-size: 32rpx; color: #666; padding: 10rpx 0"></input>
+</view>
+<view style="padding: 0rpx 20rpx;border-bottom: 1px solid rgba(0,0,0,0.1);">
+  <input value="rtmp://pull.3ttech.cn/sdk/miniapp-3t-stream" placeholder="拉流地址 (rtmp/flv)" bindconfirm='startPlaying' placeholder-style='font-size: 28rpx; color: rgba(0,0,0,0.3)' style="font-size: 32rpx; color: #666; padding: 10rpx 0"></input>
+</view>
+<view style="padding: 0rpx 20rpx; margin-top: 40rpx">
+  <text style="font-size: 30rpx; margin-right: 10rpx">Debug:</text>
+  <switch checked="{{debug}}" bindchange="switchDebug" />
+  <button bindtap="onPause">Pause</button>
+  <button bindtap="onResume">Resume</button>
+  <button bindtap="onStopPushing">Stop</button>
+</view>

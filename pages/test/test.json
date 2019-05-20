@@ -1,0 +1,4 @@
+{"usingComponents": {
+	"ttt-pusher": "../../components/ttt-pusher/ttt-pusher",
+	"ttt-player": "../../components/ttt-player/ttt-player"
+  }}

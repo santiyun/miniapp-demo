@@ -1,0 +1,60 @@
+/* pages/meeting/meeting.wxss */
+@import "../../common.wxss";
+
+page {
+  height: 100%;
+}
+
+.content {
+  width: 100%;
+  position: absolute;
+}
+
+.content .footer {
+  width: 100%;
+  font-size: 24rpx;
+  justify-content: flex-end;
+  height: 60px;
+  position: fixed;
+  bottom: 0;
+}
+
+.content .footer .bottom_box
+{
+  position: relative;
+  width: 30px; 
+  height: 50px; 
+  margin-left:calc(100% / 14 - 15px); 
+  margin-right:calc(100% / 14 - 15px);
+  display:inline-block;
+}
+
+.content .footer .bottom_box .bottom_button
+{
+  display:inline-block;
+  position: absolute;
+  width: 30px; 
+  height: 30px; 
+}
+
+.content .footer .bottom_box .bottom_button :active{
+  opacity:0.55;
+}
+
+.content .footer .bottom_box .bottom_text
+{
+  position: absolute;
+  display:inline-block;
+  color: #333333;
+  width: 100%;
+  font-size:10px;
+  bottom: 0;
+  text-align: center;
+}
+
+.content .video-container {
+  display: flex;
+  width: 100%;
+  overflow: hidden;
+  flex-wrap: wrap;
+}

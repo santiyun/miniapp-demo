@@ -1,0 +1,60 @@
+<!--index.wxml-->
+<view id="main" class="content base-bg flex-center-column">
+  <view id="video-container" class="video-container n{{totalUser}}">
+     <block wx:for="{{media}}" wx:key="key">
+        <ttt-pusher wx:if="{{item.type === 'pusher' && !item.holding}}" id="rtc-pusher" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" url="{{item.url}}" muted="{{muted}}" beauty="{{beauty}}" debug="{{debug}}" bindpushfailed="onPusherFailed">
+        </ttt-pusher>
+        <ttt-player wx:if="{{item.type === 'player' && !item.holding}}" id="rtc-player-{{item.cid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}">
+        </ttt-player>
+    </block> 
+  </view>
+  <view class="footer flex-center-column">
+  <!-- 
+    <view class="toolbar">
+      <cover-image class="bottom_button" src="./Resources/{{playing?'suspend':'start'}}.png" bindtap='onPushClick'></cover-image>
+      <button plain="true" class="mic btn" src="./Resources/{{muted?'mic':'mic-dis'}}.png" bindtap='onMute'></button>
+      <button plain="true" class="publish btn" bindtap='onPublish'></button>
+      <button plain="true" hover-class="hover" class="camera btn" bindtap='onSwitchCamera'></button>
+      <button plain="true" hover-class="hover" class="hangup btn" bindtap='onLeave'></button>
+      <button plain="true" class="makeup {{beauty === 5 ?'':'off'}} btn" bindtap='onMakeup'></button>
+      <button plain="true" hover-class="hover" class="log btn" bindtap='onSubmitLog'></button>
+      <button plain="true" hover-class="hover" class="log btn" bindtap='onSpeakTurn'></button>
+    </view>
+	-->
+      <!-- 水平方向的按钮 -->
+      <cover-view style="width:100%; height: 50px; position:absolute;bottom:5px;" >
+        <cover-view class='bottom_box'>
+          <cover-image class="bottom_button" src="./Resources/{{publishing?'unpublish':'publish'}}.png" bindtap='onPublishClick'></cover-image>
+          <cover-view class='bottom_text'>{{publishing?'停流':'推流'}}</cover-view>
+        </cover-view>
+        <cover-view class='bottom_box'>
+          <cover-image class="bottom_button" src="Resources/camera.png" bindtap='onSwitchCameraClick'></cover-image>
+          <cover-view class='bottom_text'>切换</cover-view>
+        </cover-view>
+        <cover-view class='bottom_box'>
+          <cover-image class="bottom_button" src="./Resources/{{beauty == 0 ? 'beauty-dis':'beauty'}}.png" bindtap='onMakeupClick'></cover-image>
+          <cover-view class='bottom_text'>美颜</cover-view>
+        </cover-view>
+        <cover-view class='bottom_box'>
+          <cover-image class="bottom_button" src="./Resources/{{muted?'mic-dis':'mic'}}.png" bindtap='onMuteClick'></cover-image>
+          <cover-view class='bottom_text'>声音</cover-view>
+        </cover-view>
+        <cover-view class='bottom_box'>
+          <cover-image class="bottom_button" src="./Resources/{{enableCamera?'camera-dis':'camera'}}.png" bindtap='onEnableCameraClick'></cover-image>
+          <cover-view class='bottom_text'>摄像头</cover-view>
+        </cover-view>
+        <cover-view class='bottom_box'>
+          <cover-image class="bottom_button" src="./Resources/{{orientation == 'vertical'?'portrait':'landscape'}}.png"  bindtap='onOrientationClick'></cover-image>
+          <cover-view class='bottom_text'>{{orientation == 'vertical'?'竖屏':'横屏'}}</cover-view>
+        </cover-view>
+        <cover-view class='bottom_box'>
+          <cover-image class="bottom_button" src="./Resources/leave.png"  bindtap='onLeaveClick'></cover-image>
+          <cover-view class='bottom_text'>退出</cover-view>
+        </cover-view>
+        <cover-view class='bottom_box'>
+          <cover-image class="bottom_button" src="./Resources/{{debug?'log-dis':'log'}}.png"  bindtap='onDebugClick'></cover-image>
+          <cover-view class='bottom_text'>{{debug?'停调试':'开调试'}}</cover-view>
+        </cover-view>
+      </cover-view>
+  </view>
+</view>

@@ -1,7 +1,11 @@
+const Utils = require("./utils/util.js");
+
 //app.js
 App({
 	onLaunch: function ()
 	{
+		Utils.checkSystemInfo(this);
+
 		// 展示本地存储能力
 		var logs = wx.getStorageSync('logs') || []
 		logs.unshift(Date.now())
