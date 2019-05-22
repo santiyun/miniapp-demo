@@ -3,7 +3,7 @@ const app = getApp()
 const Utils = require('../../utils/util.js')
 
 import {
-  TTTClient,
+  TTTMAEngine,
   TTTLog
 } from '../../lib/miniapp-sdk-3t';
 
@@ -68,11 +68,15 @@ Page({
     /**
      * 当前的推流状态
      */
-    publishing: false,
+    pushing: false,
     /**
      * 是否启用摄像头
      */
     enableCamera: true,
+    /**
+     * 是否拉流
+     */
+    pulling: false,
     /**
      * 横屏 or 竖屏
      */
@@ -92,7 +96,7 @@ Page({
 
     this.uid = options.userId;
 
-    // cid -- connectionId 由 gateway 统一生成 -- 在 join 的 response 中返回来
+    // cid -- connectId 由 gateway 统一生成 -- 在 join 的 response 中返回来
     // 故，此处初始化为 ''
     this.cid = "";
     // store TTT Engine client
@@ -418,15 +422,23 @@ Page({
   /**
    * publish / unpublish
    */
-  onPublishClick: function() {
-    Promise.resolve().then(() => {
-      if (this.data.connState === 1) {
+  onPushClick: function() {
+    if (this.data.pushing)
+      this.publish()
+    else
+      this.unpublish();
+  },
+
+  publish: function() {
+    new Promise((resolve, reject) => {
+      if (this.data.connState === 2) {
         //and get my stream publish url
         if (this.isBroadcaster()) {
+          let client = this.client
           client.publish({
-            onSuccess: (url) => {
-              Utils.log(`client publish success`);
-              resolve(url);
+            onSuccess: (data) => {
+              Utils.log(`client publish success. url:${data.url}`);
+              resolve(data.url);
             },
             onFailure: (e) => {
               Utils.log(`client publish failed: ${e.code} ${e.reason}`);
@@ -438,8 +450,8 @@ Page({
         }
       }
     }).then(url => {
-      Utils.log(`roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid}`);
-      Utils.log(`pushing ${url}`);
+      Utils.log(`publish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid} url: ${url}`);
+
       let ts = new Date().getTime();
 
       if (this.isBroadcaster()) {
@@ -447,11 +459,50 @@ Page({
         this.addMedia('pusher', this.cid, url, {
           key: ts
         });
+
+        //
+        this.setData({
+          pushing: true
+        })
       }
     }).catch(e => {
       Utils.log(`publish failed: ${e}`);
       wx.showToast({
         title: `流发布失败`,
+        icon: 'none',
+        duration: 5000
+      });
+    });
+  },
+
+  unpublish: function() {
+    new Promise((resolve, reject) => {
+      if (this.data.connState === 2) {
+        let client = this.client
+        client.unpublish({
+          onSuccess: (data) => {
+            Utils.log(`client unpublish success. url:${data.url}`);
+            resolve(data.url);
+          },
+          onFailure: (e) => {
+            Utils.log(`client unpublish failed: ${e.code} ${e.reason}`);
+            reject(e)
+          }
+        });
+      }
+    }).then(url => {
+      Utils.log(`unpublish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid}`);
+
+      this.removeMedia(this.cid);
+
+      //
+      this.setData({
+        pushing: false
+      })
+    }).catch(e => {
+      Utils.log(`unpublish failed: ${e}`);
+      wx.showToast({
+        title: `停流失败`,
         icon: 'none',
         duration: 5000
       });
@@ -471,6 +522,11 @@ Page({
       success: () => {
         this.navigateBack();
       }
+    })
+
+    //
+    this.setData({
+      pushing: false
     })
   },
 
@@ -611,10 +667,10 @@ Page({
     return new Promise((resolve, reject) => {
       let client = {}
 
-      // Create TTTClient
-      Utils.log(`TTTClient: ${TTTClient}`);
+      // Create TTTMAEngine
+      Utils.log(`TTTMAEngine: ${TTTMAEngine}`);
 
-      client = new TTTClient({
+      client = new TTTMAEngine({
         appId: APPID,
         userId: uid,
         server: (this.testEnv ? TEST_SERVER : null)
@@ -637,28 +693,37 @@ Page({
         userId: uid,
         onSuccess: () => {
           Utils.log(`client init success`);
+
+          //subscribe stream events from TTT Engine
+          // 注：一定要确保 subscribeEvents 在 join 之前调用 -- 以免 join 成功后来自下层的事件不能无遗漏地上上层投递
+          this.subscribeEvents(client);
+
           // pass key instead of undefined if certificate is enabled
           client.join({
             roomId: roomId,
             userId: uid,
-            onSuccess: (e) => {
+            onSuccess: (data) => {
               // store the conn state.
               this.setData({
                 connState: 2
               });
 
               const {
-                connectionId
+                connectId,
+                pushUrl,
+                peers
                 // TODO : peers
-              } = e;
+              } = data;
 
-              this.cid = connectionId;
+              this.cid = connectId;
               // TODO : peers
 
-              Utils.log(`client join room success. connectionId: ${connectionId}`);
+              //
+              for (const peer of peers) {
+                Utils.log(`peer: connectId: ${peer.connectId} userId: ${peer.userId} role: ${peer.role}`);
+              }
 
-              //subscribe stream events from TTT Engine
-              this.subscribeEvents(client);
+              Utils.log(`client join room success. connectId: ${connectId} pushUrl: ${pushUrl} peers: ${peers}`);
 
               resolve();
             },
@@ -830,6 +895,24 @@ Page({
       event: "kickout",
       callback: (e) => {
         Utils.log('I got kicked out by the others');
+
+        // update the conn state.
+        this.setData({
+          connState: 0
+        });
+
+        // destroy 
+        client.destroy();
+      }
+    })
+
+    /**
+     * 与 miniapp-au 的连接已断开（尝试n次重连后的全局断开，才会触发该事件）
+     */
+    client.on({
+      event: "disconnected",
+      callback: (e) => {
+        Utils.log('Websocket is disconnected');
 
         // update the conn state.
         this.setData({

@@ -63,13 +63,12 @@ page {
   background-color: rgba(255,255,255,0.4);
 }
 
-.content .joinBtn{
+.content .commonBtn{
   background-color: #FEFFFE;
   color: #5083AA;
   width: 240rpx;
   height: 80rpx;
   font-size: 28rpx;
-  margin-top: 32rpx;
   line-height: 80rpx;
   box-shadow: 0px 4px 4px rgba(84,163,186,0.15);  
   font-weight: bold;

@@ -26,8 +26,8 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function(options) {
-    this.roomId = "";
-    this.userId = "";
+    this.roomId = "9876000";
+    this.userId = "9876333";
 
     //
     this.lock = false;
@@ -67,10 +67,20 @@ Page({
   },
 
   /**
+   * 进入 推拉流测试 页面
+   */
+  onTestClick: function() {
+    // go to test page if roomId is 'test'
+    wx.navigateTo({
+      url: `../test/test`
+    });
+  },
+
+  /**
    * callback to get user info
    * using wechat open-type
    */
-  onGotUserInfo: function(e) {
+  onJoinClick: function(e) {
     let userInfo = e.detail.userInfo || {};
     // store data for next launch use
     wx.setStorage({
@@ -116,18 +126,12 @@ Page({
       })
     } else {
       if (this.checkJoinLock()) {
-        this.lockJoin();
-        if (roomId === "test") {
-          // go to test page if roomId is 'test'
-          wx.navigateTo({
-            url: `../test/test`
-          });
-        } else {
-          let role = this.data.isPushOn ? "broadcaster" : "audience";
-          wx.navigateTo({
-            url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}`
-          });
-        }
+		this.lockJoin();
+        //
+        let role = this.data.isPushOn ? "broadcaster" : "audience";
+        wx.navigateTo({
+          url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}`
+        });
       }
     }
   },

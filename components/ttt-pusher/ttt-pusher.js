@@ -112,7 +112,7 @@ Component({
     /**
      * 推流状态更新回调
      */
-    recorderStateChange: function (e) {
+    stateChange: function (e) {
       Utils.log(`live-pusher code: ${e.detail.code} - ${e.detail.message}`)
       if (e.detail.code === -1307) {
         //re-push
@@ -134,8 +134,9 @@ Component({
         }
       }
     },
-    recorderNetChange: function(e) {
-      Utils.log(`network: ${JSON.stringify(e.detail)}`);
+    netStatus: function(e) {
+		// TODO : 用于 流量记录 -- 对账
+      Utils.log(`pusher network: ${JSON.stringify(e.detail)}`);
     }
   },
 

@@ -25,8 +25,8 @@ Page({
      */
     media: [],
     // 
-    playUrl: "",
-    pushUrl: "",
+    playUrl: "rtmp://pull.3ttech.cn/sdk/miniapp-3t-stream",
+    pushUrl: "rtmp://push.3ttech.cn/sdk/miniapp-3t-stream",
     debug: true
   },
 
@@ -54,7 +54,7 @@ Page({
    */
   onShow: function() {
     let media = this.data.media || [];
-	  Utils.log(`onShow ...media:${media}`);
+    Utils.log(`onShow ...media:${media}`);
     media.forEach(item => {
       if (item.type === 'pusher') {
         //return for pusher
@@ -110,6 +110,18 @@ Page({
    */
   onShareAppMessage: function() {
 
+  },
+
+  bindPushInput(e) {
+    this.setData({
+      pushUrl: e.detail.value
+    })
+  },
+
+  bindPullInput(e) {
+    this.setData({
+      playUrl: e.detail.value
+    })
   },
 
   /**
@@ -184,18 +196,13 @@ Page({
   },
 
   startPushing: function(e) {
-    let url = e.detail.value;
-    this.setData({
-      pushUrl: url
-    }, () => {
-      /*
-      let context = wx.createLivePusherContext(this);
-	  context.start();
-	  */
-      let ts = new Date().getTime();
-      this.addMedia('pusher', 'miniapp-3t-stream', url, {
-        key: ts
-      });
+    /*
+    let context = wx.createLivePusherContext(this);
+    context.start();
+    */
+    let ts = new Date().getTime();
+    this.addMedia('pusher', 'miniapp-3t-stream', this.data.pushUrl, {
+      key: ts
     });
   },
 
@@ -205,15 +212,10 @@ Page({
   },
 
   startPlaying: function(e) {
-    let url = e.detail.value;
-    this.setData({
-      playUrl: url
-    }, () => {
-      let ts = new Date().getTime();
-      this.addMedia('player', 'miniapp-3t-stream', url, {
-        key: ts,
-        rotation: 0
-      });
+    let ts = new Date().getTime();
+    this.addMedia('player', 'miniapp-3t-stream', this.data.pullUrl, {
+      key: ts,
+      rotation: 0
     });
   },
 

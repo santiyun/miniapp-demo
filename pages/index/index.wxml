@@ -7,17 +7,22 @@
     </view>
     <view class="form-section flex-center-column">
       <view class="inputWrapper">
-        <input placeholder-style='color:#A3D1E0' class="valueInput" placeholder='输入房间名' bindinput="onInputRoomId" bindconfirm="onInputRoomId" bindblur="onInputRoomId"></input>
+        <input placeholder-style='color:#A3D1E0' class="valueInput" placeholder='输入房间名' bindinput="onInputRoomId" bindconfirm="onInputRoomId" bindblur="onInputRoomId" value="9876000"></input>
         <input placeholder-style='color:#A3D1E0' class="valueInput" placeholder='输入用户ID' bindinput="onInputUserId" bindconfirm="onInputUserId" bindblur="onInputUserId" value="9876333"></input>
       </view>
+	  <view class="flex-center-row">
       <checkbox-group bindchange="checkboxChange">
         <label class="checkbox" wx:for="{{items}}">
           <checkbox value="{{item.name}}" checked="{{item.checked}}" />
           <text class="h2">{{item.display}}</text>
         </label>
       </checkbox-group>
-      <button plain="true" open-type="getUserInfo" bindgetuserinfo="onGotUserInfo" disabled="{{disableJoin}}" class="joinBtn">加入房间</button>
-	  <text class="h2">'房间名'输入 test，将进入推拉流测试页面</text>
+      <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">加入房间</button>
+	  </view>
+	  <view class="flex-center-row">
+        <text class="h2">点击右侧按钮，将进入推拉流测试页面 --></text>
+        <button plain="true" bindtap="onTestClick" class="commonBtn">推拉测试</button>
+      </view>
     </view>
     <view class="footer flex-center-column">
       <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" background-size="cover"></image>

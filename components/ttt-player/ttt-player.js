@@ -112,7 +112,7 @@ Component({
     /**
      * 播放器状态更新回调
      */
-    playerStateChange: function (e) {
+    stateChange: function (e) {
       Utils.log(`live-player id: ${e.target.id}, code: ${e.detail.code}`)
       let cid = parseInt(e.target.id.split("-")[1]);
       if (e.detail.code === 2004) {
@@ -129,6 +129,10 @@ Component({
         })
       }
     },
+    netStatus: function(e) {
+		// TODO : 用于 流量记录 -- 对账
+      Utils.log(`player network: ${JSON.stringify(e.detail)}`);
+    }
   },
   /**
    * 组件生命周期
