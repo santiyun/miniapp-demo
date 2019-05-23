@@ -48,7 +48,9 @@ Page({
     /**
      * muted
      */
-    muted: false,
+	muted: false,
+	showHDTips: false, // 默认不显示清晰度弹窗
+	mode: "RTC",
     /**
      * beauty 0 - 10
      */
@@ -68,7 +70,11 @@ Page({
     /**
      * 当前的推流状态
      */
-    pushing: false,
+	pushing: false,
+	/**
+	 * 当前的拉流状态
+	 */
+	pulling: false,
     /**
      * 是否启用摄像头
      */
@@ -383,6 +389,29 @@ Page({
     this.client && this.client.destroy();
   },
 
+  onModeClick: function (event) {
+    var mode = "SD";
+    switch (event.target.dataset.mode) {
+      case "SD":
+        mode = "SD";
+        break;
+      case "HD":
+        mode = "HD";
+        break;
+      case "FHD":
+        mode = "FHD";
+        break;
+      case "RTC":
+        mode = "RTC";
+        break;
+    }
+
+    this.setData({
+      mode: mode,
+      showHDTips: false
+    })
+  },
+
   /**
    * callback when leave button called
    */
@@ -420,11 +449,88 @@ Page({
   },
 
   /**
+   * subscribe / unsubscribe
+   */
+  onPullClick: function() {
+    if (!this.data.pulling)
+      this.subscribe();
+    else
+      this.unsubscribe();
+  },
+
+  subscribe: function() {
+	  // this.cid
+    new Promise((resolve, reject) => {
+		if (this.data.connState === 2) {
+			// TODO : retrieve the userId & connectId from peers(local store)
+			// 
+			let userId = 0;
+			let connectId = '';
+			let client = this.client
+			client.subscribe({
+				userId,
+				connectId,
+			  onSuccess: (data) => {
+				Utils.log(`client publish success. url:${data.url}`);
+				resolve(data.url);
+			  },
+			  onFailure: (e) => {
+				Utils.log(`client publish failed: ${e.code} ${e.reason}`);
+				reject(e)
+			  }
+			});
+		}
+	  }).then(url => {
+		Utils.log(`subscribe url: ${url}`);
+  
+		let ts = new Date().getTime();
+  
+		let media = this.data.media || [];
+        let matchItem = null;
+        for( let i = 0; i < media.length; i++) {
+          let item = this.data.media[i];
+          if(`${item.cid}` === `${cid}`) {
+            //if existing, record this as matchItem and break
+            matchItem = item;
+            break;
+          }
+        }
+
+        if (!matchItem) {
+          //if not existing, add new media
+          this.addMedia('player', this.cid, url, {
+			  key: ts,
+			  rotation: rotation
+			})
+        } else {
+          // if existing, update property
+          // change key property to refresh live-player
+          this.updateMedia(matchItem.cid, {url: url});
+        }
+		  //
+		  this.setData({
+			pulling: true
+		  });
+	  }).catch(e => {
+		Utils.log(`subscribe failed: ${e}`);
+		wx.showToast({
+		  title: `拉流失败`,
+		  icon: 'none',
+		  duration: 5000
+		});
+	  });
+  },
+
+  unsubscribe: function() {
+
+  },
+
+  /**
    * publish / unpublish
    */
   onPushClick: function() {
-    if (this.data.pushing)
-      this.publish()
+    if (!this.data.pushing)
+      this.publish();
     else
       this.unpublish();
   },
@@ -463,12 +569,12 @@ Page({
         //
         this.setData({
           pushing: true
-        })
+        });
       }
     }).catch(e => {
       Utils.log(`publish failed: ${e}`);
       wx.showToast({
-        title: `流发布失败`,
+        title: `推流失败`,
         icon: 'none',
         duration: 5000
       });
@@ -480,9 +586,9 @@ Page({
       if (this.data.connState === 2) {
         let client = this.client
         client.unpublish({
-          onSuccess: (data) => {
-            Utils.log(`client unpublish success. url:${data.url}`);
-            resolve(data.url);
+          onSuccess: () => {
+            Utils.log('client unpublish success.');
+            resolve();
           },
           onFailure: (e) => {
             Utils.log(`client unpublish failed: ${e.code} ${e.reason}`);
@@ -490,7 +596,7 @@ Page({
           }
         });
       }
-    }).then(url => {
+    }).then(() => {
       Utils.log(`unpublish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid}`);
 
       this.removeMedia(this.cid);
@@ -498,7 +604,7 @@ Page({
       //
       this.setData({
         pushing: false
-      })
+      });
     }).catch(e => {
       Utils.log(`unpublish failed: ${e}`);
       wx.showToast({
@@ -527,7 +633,7 @@ Page({
     //
     this.setData({
       pushing: false
-    })
+    });
   },
 
   /**
@@ -625,6 +731,13 @@ Page({
         Utils.log(`switch to broadcaster failed ${e.stack}`);
       })
     }
+  },
+  
+  onSwitchMode: function () {
+    var showTips = !this.data.showHDTips;
+    this.setData({
+      showHDTips: showTips
+    })
   },
 
   /**
@@ -841,7 +954,8 @@ Page({
          * subscribe to get corresponding url
          */
         client.subscribe({
-          userId: cid,
+			userId: e.uid,
+			connectId: cid,
           onSuccess: (url, rotation) => {
             Utils.log(`stream ${cid} subscribed successful`);
             let media = this.data.media || [];

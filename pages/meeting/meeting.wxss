@@ -33,7 +33,7 @@ page {
 {
   display: inline-block;
   position: absolute;
-  width: 25px; 
+  width: 25px;
   height: 25px; 
 }
 

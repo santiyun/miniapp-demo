@@ -14,7 +14,7 @@
 		"checkInvalidKey": true
 	},
 	"compileType": "miniprogram",
-	"libVersion": "2.6.5",
+	"libVersion": "2.7.0",
 	"appid": "wx7d02c8a3a558df99",
 	"projectname": "miniapp-sdk-demo",
 	"debugOptions": {
