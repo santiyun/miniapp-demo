@@ -98,6 +98,10 @@ Page({
     this.roomId = options.roomId;
     // default role to broadcaster
     this.role = options.role || "broadcaster";
+    // 是否自动拉流
+	this.autoPull = (options.autoPull === 'true') ? true : false;
+	
+	Utils.log(`this.autoPull : ${this.autoPull}`);
     //
 
     this.uid = options.userId;
@@ -951,44 +955,47 @@ Page({
       callback: (e) => {
         let cid = e.cid;
         const ts = new Date().getTime();
-        Utils.log(`stream ${cid} added`);
+        Utils.log(`stream ${cid} added. this.autoPull: ${this.autoPull}`);
         /**
          * subscribe to get corresponding url
          */
-        client.subscribe({
-          userId: e.uid,
-          connectId: cid,
-          onSuccess: (data) => {
-            Utils.log(`stream ${cid} subscribed successful`);
-            let media = this.data.media || [];
-            let matchItem = null;
-            for (let i = 0; i < media.length; i++) {
-              let item = this.data.media[i];
-              if (`${item.cid}` === `${cid}`) {
-                //if existing, record this as matchItem and break
-                matchItem = item;
-                break;
+        if (this.autoPull) {
+          client.subscribe({
+            userId: e.uid,
+            connectId: cid,
+            onSuccess: (data) => {
+              Utils.log(`stream ${cid} subscribed successful`);
+              let media = this.data.media || [];
+              let matchItem = null;
+              for (let i = 0; i < media.length; i++) {
+                let item = this.data.media[i];
+                if (`${item.cid}` === `${cid}`) {
+                  //if existing, record this as matchItem and break
+                  matchItem = item;
+                  break;
+                }
               }
-            }
 
-            if (!matchItem) {
-              //if not existing, add new media
-              this.addMedia('player', cid, data.url, {
-                key: ts,
-                rotation: data.rotation
-              })
-            } else {
-              // if existing, update property
-              // change key property to refresh live-player
-              this.updateMedia(matchItem.cid, {
-                url: data.url
-              });
+              if (!matchItem) {
+                //if not existing, add new media
+                this.addMedia('player', cid, data.url, {
+                  key: ts,
+                  rotation: data.rotation
+                })
+              } else {
+                // if existing, update property
+                // change key property to refresh live-player
+                this.updateMedia(matchItem.cid, {
+                  url: data.url
+                });
+              }
+            },
+            onFailure: (e) => {
+              Utils.log(`stream subscribed failed ${e} ${e.code} ${e.reason}`);
             }
-          },
-          onFailure: (e) => {
-            Utils.log(`stream subscribed failed ${e} ${e.code} ${e.reason}`);
-          }
-        });
+          });
+        }
+        // 
       }
     });
 
