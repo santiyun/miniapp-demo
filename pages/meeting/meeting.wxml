@@ -8,23 +8,18 @@
       </ttt-player>
     </block>
   </view>
-  
-      <cover-view style="width:25px; height: 25px; position:absolute;bottom:60px;margin-left:calc(50% - 32px)">
-        <cover-image class="bottom_button" src="./Resources/{{debug?'log-dis':'log'}}.png" bindtap='onDebugClick'></cover-image>
-        <cover-view class='bottom_text'>{{debug?'关调试':'开调试'}}</cover-view>
-      </cover-view>
 
-      <cover-view style="width:65px; height: 115px; position:absolute;bottom:115px;margin-left:calc(50% - 32px)" hidden='{{!showHDTips}}'>       
-        <cover-image src="./Resources/hd_tips.png"></cover-image>
-        <cover-view style="width:100%; font-size:10px; color: #ffffff;position:absolute;bottom:20px;margin-left:calc(50% - 32px);text-align: center;" data-mode="SD" bindtap='onModeClick'>标清</cover-view>
-        <cover-view style="width:100%; font-size:10px; color: #ffffff;position:absolute;bottom:55px;margin-left:calc(50% - 32px);text-align: center;" data-mode="HD" bindtap='onModeClick'>高清</cover-view>
-        <cover-view style="width:100%; font-size:10px; color: #ffffff;position:absolute;bottom:90px;margin-left:calc(50% - 32px);text-align: center;" data-mode="FHD" bindtap='onModeClick'>超清</cover-view>
-      </cover-view>
-  
-      <cover-view style="width:25px; height: 25px; position:absolute;bottom:90px;margin-left:calc(50% - 32px)">
-        <cover-image class="bottom_button" src="./Resources/video_mode.png" bindtap='onSwitchMode'></cover-image>
-        <cover-view class='bottom_text'>视频模式</cover-view>
-      </cover-view>
+  <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 32px)">
+    <cover-image class="common_button" src="./Resources/{{debug?'log-dis':'log'}}.png" bindtap='onDebugClick'></cover-image>
+    <cover-view class='common_text'>{{debug?'关调试':'开调试'}}</cover-view>
+  </cover-view>
+
+  <cover-view style="width:65px; height: 115px; position: absolute; bottom: 55px; margin-left: calc(50% - 32px)" hidden='{{!showHDTips}}'>
+    <cover-image src="./Resources/hd_tips.png"></cover-image>
+    <cover-view style="width:100%; font-size:10px; color: #ffffff;position:absolute;bottom:20px;margin-left:calc(50% - 32px);text-align: center;" data-mode="SD" bindtap='onModeClick'>标清</cover-view>
+    <cover-view style="width:100%; font-size:10px; color: #ffffff;position:absolute;bottom:55px;margin-left:calc(50% - 32px);text-align: center;" data-mode="HD" bindtap='onModeClick'>高清</cover-view>
+    <cover-view style="width:100%; font-size:10px; color: #ffffff;position:absolute;bottom:90px;margin-left:calc(50% - 32px);text-align: center;" data-mode="FHD" bindtap='onModeClick'>超清</cover-view>
+  </cover-view>
 
   <view class="footer flex-center-column">
     <!-- 水平方向的按钮 -->
@@ -38,7 +33,7 @@
         <cover-view class='bottom_text'>拉流</cover-view>
       </cover-view>
       <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="Resources/camera.png" bindtap='onSwitchCameraClick'></cover-image>
+        <cover-image class="bottom_button" src="Resources/switch-cam.png" bindtap='onSwitchCameraClick'></cover-image>
         <cover-view class='bottom_text'>切换</cover-view>
       </cover-view>
       <cover-view class='bottom_box'>
@@ -56,6 +51,10 @@
       <cover-view class='bottom_box'>
         <cover-image class="bottom_button" src="./Resources/leave.png" bindtap='onLeaveClick'></cover-image>
         <cover-view class='bottom_text'>退出</cover-view>
+      </cover-view>
+      <cover-view class='bottom_box'>
+        <cover-image class="bottom_button" src="./Resources/video_mode.png" bindtap='onSwitchMode'></cover-image>
+        <cover-view class='bottom_text'>视频模式</cover-view>
       </cover-view>
     </cover-view>
   </view>

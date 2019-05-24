@@ -126,7 +126,7 @@ Page({
       })
     } else {
       if (this.checkJoinLock()) {
-		this.lockJoin();
+        this.lockJoin();
         //
         let role = this.data.isPushOn ? "broadcaster" : "audience";
         wx.navigateTo({
@@ -140,7 +140,7 @@ Page({
     let value = e.detail.value;
     this.roomId = value;
   },
-  
+
   onInputUserId: function(e) {
     let value = e.detail.value;
     this.userId = value;
