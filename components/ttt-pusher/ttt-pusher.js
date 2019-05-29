@@ -86,12 +86,12 @@ Component({
      */
     start() {
       Utils.log(`starting pusher`);
-      this.data.pusherContext.stop();
+      this.data.pusherContext && this.data.pusherContext.stop();
       if (this.data.detached) {
         Utils.log(`try to start pusher while component already detached`);
         return;
       }
-      this.data.pusherContext.start();
+      this.data.pusherContext && this.data.pusherContext.start();
     },
 
     /**
@@ -99,14 +99,14 @@ Component({
      */
     stop() {
       Utils.log(`stopping pusher`);
-      this.data.pusherContext.stop();
+      this.data.pusherContext && this.data.pusherContext.stop();
     },
 
     /**
      * switch camera direction
      */
     switchCamera() {
-      this.data.pusherContext.switchCamera();
+      this.data.pusherContext && this.data.pusherContext.switchCamera();
     },
 
     /**

@@ -86,7 +86,7 @@ Component({
         Utils.log(`try to start pusher while component already detached`);
         return;
       }
-      this.data.playContext.play();
+      this.data.playContext && this.data.playContext.play();
     },
 
     /**
@@ -95,7 +95,7 @@ Component({
     stop: function () {
       const cid = this.data.cid;
       Utils.log(`stopping player ${cid}`);
-      this.data.playContext.stop();
+      this.data.playContext && this.data.playContext.stop();
     },
 
     /**

@@ -171,6 +171,64 @@ Page({
   },
 
   /**
+   * 生命周期函数--监听页面显示
+   */
+  onShow: function() {
+    let media = this.data.media || [];
+    media.forEach(item => {
+      if (item.type === 'pusher') {
+        //return for pusher
+        return;
+      }
+      let player = this.getPlayerComponent(item.cid);
+      if (!player) {
+        Utils.log(`player ${item.cid} component no longer exists`, "error");
+      } else {
+        // while in background, the player maybe added but not starting
+        // in this case we need to start it once come back
+        player.start();
+      }
+    });
+  },
+
+  /**
+   * 生命周期函数--监听页面隐藏
+   */
+  onHide: function() {},
+
+  onError: function(e) {
+    Utils.log(`error: ${JSON.stringify(e)}`);
+  },
+
+  /**
+   * 生命周期函数--监听页面卸载
+   */
+  onUnload: function() {
+    Utils.log(`onUnload`);
+    clearInterval(this.logTimer);
+    this.logTimer = null;
+
+    // unlock index page join button
+    let pages = getCurrentPages();
+    if (pages.length > 1) {
+      //unlock join
+      let indexPage = pages[0];
+      indexPage.unlockJoin();
+    }
+
+    // unpublish sdk and leave roomId
+    if (this.isBroadcaster()) {
+      try {
+        this.client && this.client.unpublish();
+      } catch (e) {
+        Utils.log(`unpublish failed ${e}`);
+      }
+    }
+    // client.destroy 内部将自动调用 leave
+    this.client && this.client.destroy();
+  },
+
+  /**
    * 只有提供了该回调才会出现转发选项
    */
   onShareAppMessage() {
@@ -333,64 +391,6 @@ Page({
         resolve();
       });
     });
-  },
-
-  /**
-   * 生命周期函数--监听页面显示
-   */
-  onShow: function() {
-    let media = this.data.media || [];
-    media.forEach(item => {
-      if (item.type === 'pusher') {
-        //return for pusher
-        return;
-      }
-      let player = this.getPlayerComponent(item.cid);
-      if (!player) {
-        Utils.log(`player ${item.cid} component no longer exists`, "error");
-      } else {
-        // while in background, the player maybe added but not starting
-        // in this case we need to start it once come back
-        player.start();
-      }
-    });
-  },
-
-  /**
-   * 生命周期函数--监听页面隐藏
-   */
-  onHide: function() {},
-
-  onError: function(e) {
-    Utils.log(`error: ${JSON.stringify(e)}`);
-  },
-
-  /**
-   * 生命周期函数--监听页面卸载
-   */
-  onUnload: function() {
-    Utils.log(`onUnload`);
-    clearInterval(this.logTimer);
-    this.logTimer = null;
-
-    // unlock index page join button
-    let pages = getCurrentPages();
-    if (pages.length > 1) {
-      //unlock join
-      let indexPage = pages[0];
-      indexPage.unlockJoin();
-    }
-
-    // unpublish sdk and leave roomId
-    if (this.isBroadcaster()) {
-      try {
-        this.client && this.client.unpublish();
-      } catch (e) {
-        Utils.log(`unpublish failed ${e}`);
-      }
-    }
-    // client.destroy 内部将自动调用 leave
-    this.client && this.client.destroy();
   },
 
   onModeClick: function(event) {
@@ -626,6 +626,11 @@ Page({
    * 向 CDN 推流失败时，回调
    */
   onPusherFailed: function() {
+    //
+    this.setData({
+      pushing: false
+	});
+	
     Utils.log('pusher failed completely', "error");
     wx.showModal({
       title: '发生错误',
@@ -636,10 +641,6 @@ Page({
       }
     })
 
-    //
-    this.setData({
-      pushing: false
-    });
   },
 
   /**
@@ -648,7 +649,9 @@ Page({
   onMuteClick: function() {
     this.setData({
       muted: !this.data.muted
-    })
+	});
+	
+	Utils.log(`muted : ${this.data.muted}`);
   },
 
   /**
