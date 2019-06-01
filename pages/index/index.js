@@ -13,20 +13,36 @@ Page({
     hasUserInfo: false,
     // whether to disable join btn or not
     disableJoin: false,
+    chkUserRoles: [{
+      name: 'CHAIRMAN',
+      display: '主播',
+      value: 1
+    }, {
+      name: 'PARTICIPANT',
+      display: '副播',
+      checked: 'true',
+      value: 2
+    }, {
+      name: 'AUDIENCE',
+      display: '观众',
+      value: 3
+    }],
     chkPushOn: [{
       name: 'PUSH_STREAM',
       display: '推流',
       checked: true
-	}],
-	chkAutoPull: [{
-		name: 'AUTO_SUBSCRIBE',
-		display: '自动拉流',
-		checked: false
-	  }],
+    }],
+    chkAutoPull: [{
+      name: 'AUTO_SUBSCRIBE',
+      display: '自动拉流',
+      checked: false
+    }],
     // 入房间后，是否推流
-	isPushOn: true,
-	// 入房间后，是否自动拉流
-	isAutoPull: false
+    isPushOn: true,
+    // 入房间后，是否自动拉流
+    isAutoPull: false,
+    // 用户角色
+    userRole: 2
   },
 
   /**
@@ -97,50 +113,70 @@ Page({
     this.onJoin(userInfo);
   },
 
-  checkboxChangePushOn(e) {
-	let value = e.detail.value.toString();
-	let items = this.data.chkPushOn || [];
+  radioChangeUserRole: function(e) {
+    let value = e.detail.value.toString();
+    let items = this.data.chkUserRoles || [];
 
-	let isPushOn = false;
+    let role = 0;
 
     for (let i = 0; i < items.length; i++) {
-	  let item = items[i];
-	  
+      let item = items[i];
+
       if (value.search(`${item.name}`) !== -1) {
-        isPushOn = true;
-	  } else {
-		isPushOn = false;
-	  }
+        role = item.value;
+        break;
+      }
     }
 
-	this.setData({
-	  isPushOn: isPushOn
-	});
-	
-	Utils.log(`checkboxChangePushOn : ${this.data.isPushOn}`);
+    this.setData({
+      userRole: role
+    });
+
+    Utils.log(`radioChangeUserRole : ${this.data.userRole}`);
+  },
+
+  checkboxChangePushOn(e) {
+    let value = e.detail.value.toString();
+    let items = this.data.chkPushOn || [];
+
+    let isPushOn = false;
+
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i];
+
+      if (value.search(`${item.name}`) !== -1) {
+        isPushOn = true;
+        break;
+      }
+    }
+
+    this.setData({
+      isPushOn: isPushOn
+    });
+
+    Utils.log(`checkboxChangePushOn : ${this.data.isPushOn}`);
   },
 
   checkboxChangeAutoPull(e) {
-	let value = e.detail.value.toString();
-	let items = this.data.chkAutoPull || [];
+    let value = e.detail.value.toString();
+    let items = this.data.chkAutoPull || [];
 
-	let isAutoPull = false;
+    let isAutoPull = false;
 
     for (let i = 0; i < items.length; i++) {
-	  let item = items[i];
-	  
+      let item = items[i];
+
       if (value.search(`${item.name}`) !== -1) {
         isAutoPull = true;
-	  } else {
-		isAutoPull = false;
-	  }
+        break;
+      }
     }
 
-	this.setData({
-	  isAutoPull: isAutoPull
-	});
-	
-	Utils.log(`checkboxChangeAutoPull : ${this.data.isAutoPull}`);
+    this.setData({
+      isAutoPull: isAutoPull
+    });
+
+    Utils.log(`checkboxChangeAutoPull : ${this.data.isAutoPull}`);
   },
 
   /**
@@ -175,8 +211,8 @@ Page({
       if (this.checkJoinLock()) {
         this.lockJoin();
         //
-		let role = this.data.isPushOn ? "broadcaster" : "audience";
-		let autoPull = this.data.isAutoPull;
+        let role = this.data.userRole;
+        let autoPull = this.data.isAutoPull;
 
         wx.navigateTo({
           url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}`

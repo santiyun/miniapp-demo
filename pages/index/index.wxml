@@ -6,15 +6,23 @@
       <text class="h1">小程序 3t 实时音视频 Demo</text>
     </view>
     <view class="form-section flex-center-column">
-      <view class="inputWrapper flex-center-row">
+      <view class="rowWrapper flex-center-row">
         <text class="h2">房间号</text>
         <input placeholder-style='color:#A3D1E0' class="valueInput" placeholder='输入房间号' bindinput="onInputRoomId" bindconfirm="onInputRoomId" bindblur="onInputRoomId" value="9876000"></input>
       </view>
-      <view class="inputWrapper flex-center-row">
+      <view class="rowWrapper flex-center-row">
         <text class="h2">用户ID</text>
         <input placeholder-style='color:#A3D1E0' class="valueInput" placeholder='输入用户ID' bindinput="onInputUserId" bindconfirm="onInputUserId" bindblur="onInputUserId" value="9876333"></input>
       </view>
-      <view class="flex-center-row">
+      <view class="rowWrapper flex-center-row">
+        <radio-group class="radio-group" bindchange="radioChangeUserRole">
+          <label class="radio" wx:for="{{chkUserRoles}}">
+            <radio value="{{item.name}}" checked="{{item.checked}}" />
+			<text class="h2">{{item.display}}</text>
+          </label>
+        </radio-group>
+      </view>
+      <view class="rowWrapper flex-center-row">
         <checkbox-group bindchange="checkboxChangePushOn">
           <label class="checkbox" wx:for="{{chkPushOn}}">
             <checkbox value="{{item.name}}" checked="{{item.checked}}" />
@@ -29,7 +37,7 @@
         </checkbox-group>
         <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">加入房间</button>
       </view>
-      <view class="flex-center-row">
+      <view class="rowWrapper flex-center-row">
         <text class="h2">点击右侧按钮，将进入推拉流测试页面 --></text>
         <button plain="true" bindtap="onTestClick" class="commonBtn">推拉测试</button>
       </view>

@@ -21,6 +21,8 @@
 
 .flex-center-row{
   display: flex;
+  padding-top: 10rpx;
+  padding-bottom: 10rpx;
   flex-direction: row;
   align-items: center;
   justify-content: flex-center;

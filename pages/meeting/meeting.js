@@ -97,7 +97,7 @@ Page({
     // get roomId from page query param
     this.roomId = options.roomId;
     // default role to broadcaster
-    this.role = options.role || "broadcaster";
+    this.role = parseInt(options.role) || 1;
     // 是否自动拉流
 	this.autoPull = (options.autoPull === 'true') ? true : false;
 	
@@ -217,7 +217,7 @@ Page({
     }
 
     // unpublish sdk and leave roomId
-    if (this.isBroadcaster()) {
+    if (this.canPublsh()) {
       try {
         this.client && this.client.unpublish();
       } catch (e) {
@@ -544,8 +544,8 @@ Page({
   publish: function() {
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
-        //and get my stream publish url
-        if (this.isBroadcaster()) {
+        // and get my stream publish url
+        if (this.canPublsh()) {
           let client = this.client
           client.publish({
             onSuccess: (data) => {
@@ -558,7 +558,7 @@ Page({
             }
           });
         } else {
-          resolve();
+          reject(new Error("Publish forbidden"));
         }
       }
     }).then(url => {
@@ -566,7 +566,7 @@ Page({
 
       let ts = new Date().getTime();
 
-      if (this.isBroadcaster()) {
+      if (this.canPublsh()) {
         // first time init, add pusher media to view
         this.addMedia('pusher', this.cid, url, {
           key: ts
@@ -576,7 +576,9 @@ Page({
         this.setData({
           pushing: true
         });
-      }
+      } else {
+		reject(new Error("Publish forbidden"));
+	  }
     }).catch(e => {
       Utils.log(`publish failed: ${e}`);
       wx.showToast({
@@ -724,7 +726,7 @@ Page({
    * 上麦 / 下麦 切换
    */
   onSpeakTurnClick: function() {
-    if (this.isBroadcaster()) {
+    if (this.canPublsh()) {
       this.becomeAudience().then(() => {
         this.removeMedia(this.cid);
       }).catch(e => {
@@ -884,9 +886,9 @@ Page({
       if (!this.client) {
         return reject(new Error("no client available"))
       }
-      let client = this.client
-      this.role = "broadcaster"
-      client.setRole(this.role)
+      let client = this.client;
+      this.role = 1;
+      client.setRole(this.role);
       Utils.log(`client switching role to ${this.role}`);
       client.publish({
         onSuccess: (url) => {
@@ -910,7 +912,7 @@ Page({
       let client = this.client
       client.unpublish(() => {
         Utils.log(`client unpublish success`);
-        this.role = "audience"
+        this.role = 2;
         Utils.log(`client switching role to ${this.role}`);
         client.setRole(this.role)
         resolve();
@@ -924,8 +926,8 @@ Page({
   /**
    * 如果
    */
-  isBroadcaster: function() {
-    return this.role === "broadcaster";
+  canPublsh: function() {
+    return (this.role === 1 || this.role === 2);
   },
 
   /**
