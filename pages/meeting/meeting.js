@@ -279,7 +279,7 @@ Page({
    * component life cycle event detached will be called, and
    * new media component life cycle event ready will then be called
    */
-  addMedia(mediaType, cid, url, options) {
+  addMedia(mediaType, uid, cid, url, options) {
     Utils.log(`add media ${mediaType} ${cid} ${url}`);
     let media = this.data.media || [];
 
@@ -287,7 +287,8 @@ Page({
       //pusher
       media.splice(0, 0, {
         key: options.key,
-        type: mediaType,
+		type: mediaType,
+		uid: uid,
         cid: `${cid}`,
         holding: false,
         url: url,
@@ -301,7 +302,8 @@ Page({
       media.push({
         key: options.key,
         rotation: options.rotation,
-        type: mediaType,
+		type: mediaType,
+		uid: uid,
         cid: `${cid}`,
         holding: false,
         url: url,
@@ -333,6 +335,22 @@ Page({
       Utils.log(`media not changed: ${JSON.stringify(media)}`)
       return Promise.resolve();
     }
+  },
+
+  /**
+   * remove all the media item
+   */
+  removeAllMedia: function(mediaType) {
+	  Utils.log('remove all the media item');
+	  let media = this.data.media || [];
+	  media = media.filter(item => {
+		return `${item.type}` !== `${mediaType}`
+	  });
+	  
+	  if (media.length !== this.data.media.length) {
+		media = this.syncLayout(media);
+		this.refreshMedia(media);
+	  }
   },
 
   /**
@@ -391,6 +409,36 @@ Page({
         resolve();
       });
     });
+  },
+
+  /**
+   * close all the subscribe media
+   */
+  closeAllSubscribe: function() {
+	Utils.log('close all the subscribe media');
+	return new Promise((resolve) => {
+		let media = this.data.media || [];
+
+		let client = this.client;
+		for (let i = 0; i < media.length; i++) {
+			let item = media[i];
+			if (item.type === 'player') {
+				client.unsubscribe({
+					userId    : item.uid,
+					connectId : item.cid,
+					onSuccess : () => {
+						Utils.log(`unsubscribe ${item.uid} ok`);
+					},
+					onFailure : () => {
+						Utils.log(`unsubscribe ${item.uid} fail`);
+					}
+				});
+			}
+		}
+		// 
+		this.removeAllMedia('player');
+		resolve();
+	});
   },
 
   onModeClick: function(event) {
@@ -455,10 +503,7 @@ Page({
   /**
    * subscribe / unsubscribe
    */
-  onPullClick: function() {
-    if (!this.data.pulling)
-      this.subscribe();
-    else
+  onUnsubscribeClick: function() {
       this.unsubscribe();
   },
 
@@ -476,7 +521,7 @@ Page({
           connectId,
           onSuccess: (data) => {
             Utils.log(`client subscribe success. url:${data.url}`);
-            resolve(data.url);
+            resolve(data);
           },
           onFailure: (e) => {
             Utils.log(`client subscribe failed: ${e.code} ${e.reason}`);
@@ -484,8 +529,8 @@ Page({
           }
         });
       }
-    }).then(url => {
-      Utils.log(`subscribe url: ${url}`);
+    }).then(data => {
+      Utils.log(`subscribe url: ${data.url}`);
 
       let ts = new Date().getTime();
 
@@ -502,7 +547,7 @@ Page({
 
       if (!matchItem) {
         //if not existing, add new media
-        this.addMedia('player', this.cid, url, {
+        this.addMedia('player', data.userId, data.connectId, data.url, {
           key: ts,
           rotation: rotation
         })
@@ -510,7 +555,7 @@ Page({
         // if existing, update property
         // change key property to refresh live-player
         this.updateMedia(matchItem.cid, {
-          url: url
+          url: data.url
         });
       }
       //
@@ -528,13 +573,13 @@ Page({
   },
 
   unsubscribe: function() {
-
+	this.closeAllSubscribe();
   },
 
   /**
    * publish / unpublish
    */
-  onPushClick: function() {
+  onPublishClick: function() {
     if (!this.data.pushing)
       this.publish();
     else
@@ -568,7 +613,7 @@ Page({
 
       if (this.canPublsh()) {
         // first time init, add pusher media to view
-        this.addMedia('pusher', this.cid, url, {
+        this.addMedia('pusher', this.uid, this.cid, url, {
           key: ts
         });
 
@@ -735,7 +780,7 @@ Page({
     } else {
       let ts = new Date().getTime();
       this.becomeBroadcaster().then(url => {
-        this.addMedia('pusher', this.cid, url, {
+        this.addMedia('pusher', this.uid, this.cid, url, {
           key: ts
         });
       }).catch(e => {
@@ -811,7 +856,11 @@ Page({
 
       // store TTT Engine 
       this.client = client;
-      client.setRole(this.role);
+      client.setRole({
+		  role: this.role,
+		  onSuccess: () => {},
+		  onFailure: () => {}
+	  });
       client.init({
         appId: APPID,
         userId: uid,
@@ -983,7 +1032,7 @@ Page({
 
               if (!matchItem) {
                 //if not existing, add new media
-                this.addMedia('player', cid, data.url, {
+                this.addMedia('player', data.userId, data.connectId, data.url, {
                   key: ts,
                   rotation: data.rotation
                 })
@@ -1022,7 +1071,12 @@ Page({
     client.on({
       event: "kickout",
       callback: (e) => {
-        Utils.log('I got kicked out by the others');
+		Utils.log('I got kicked out by the others');
+		
+        let errObj = e || {};
+        let uid = errObj.uid || 0;
+        let reason = errObj.reason || "";
+        Utils.log(`kickout uid: ${uid}, reason: ${reason}`);
 
         // update the conn state.
         this.setData({
@@ -1030,7 +1084,12 @@ Page({
         });
 
         // destroy 
-        client.destroy();
+		client.destroy();
+		
+		// 跳回首页
+		wx.navigateTo({
+			url: `../index/index`
+			});		
       }
     })
 
@@ -1048,7 +1107,12 @@ Page({
         });
 
         // destroy 
-        client.destroy();
+		client.destroy();
+		
+		// 跳回首页
+		wx.navigateTo({
+			url: `../index/index`
+			});
       }
     })
 
