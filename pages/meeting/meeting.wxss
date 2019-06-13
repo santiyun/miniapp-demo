@@ -55,6 +55,7 @@ page {
   width: 100%;
   overflow: hidden;
   flex-wrap: wrap;
+  margin-bottom: 80rpx;
 }
 
 .common_button {

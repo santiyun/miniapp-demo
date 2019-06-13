@@ -29,16 +29,16 @@ Page({
     }],
     chkPushOn: [{
       name: 'PUSH_STREAM',
-      display: '推流',
-      checked: true
+      display: '自动推流',
+      checked: false
     }],
     chkAutoPull: [{
       name: 'AUTO_SUBSCRIBE',
       display: '自动拉流',
       checked: false
     }],
-    // 入房间后，是否推流
-    isPushOn: true,
+    // 入房间后，是否自动推流
+    isAutoPush: false,
     // 入房间后，是否自动拉流
     isAutoPull: false,
     // 用户角色
@@ -135,26 +135,26 @@ Page({
     Utils.log(`radioChangeUserRole : ${this.data.userRole}`);
   },
 
-  checkboxChangePushOn(e) {
+  checkboxChangeAutoPush(e) {
     let value = e.detail.value.toString();
     let items = this.data.chkPushOn || [];
 
-    let isPushOn = false;
+    let isAutoPush = false;
 
     for (let i = 0; i < items.length; i++) {
       let item = items[i];
 
       if (value.search(`${item.name}`) !== -1) {
-        isPushOn = true;
+        isAutoPush = true;
         break;
       }
     }
 
     this.setData({
-      isPushOn: isPushOn
+		isAutoPush: isAutoPush
     });
 
-    Utils.log(`checkboxChangePushOn : ${this.data.isPushOn}`);
+    Utils.log(`checkboxChangeAutoPush : ${this.data.isAutoPush}`);
   },
 
   checkboxChangeAutoPull(e) {
@@ -212,10 +212,11 @@ Page({
         this.lockJoin();
         //
         let role = this.data.userRole;
-        let autoPull = this.data.isAutoPull;
+		let autoPull = this.data.isAutoPull;
+		let autoPush = this.data.isAutoPush;
 
         wx.navigateTo({
-          url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}`
+          url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
         });
       }
     }

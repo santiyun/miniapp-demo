@@ -1,5 +1,10 @@
 // pages/test/test.js
+const app = getApp()
 const Utils = require('../../utils/util.js')
+
+// 最大用户数量
+const max_user = 7;
+const Layouter = require('../../utils/layout.js');
 
 Page({
   /**
@@ -25,7 +30,7 @@ Page({
      */
     media: [],
     // 
-    playUrl: "rtmp://pull.3ttech.cn/sdk/miniapp-3t-stream",
+    pullUrl: "rtmp://pull.3ttech.cn/sdk/miniapp-3t-stream",
     pushUrl: "rtmp://push.3ttech.cn/sdk/miniapp-3t-stream",
     debug: true
   },
@@ -39,13 +44,18 @@ Page({
     });
     wx.setKeepScreenOn({
       keepScreenOn: true
-    })
+    });
+    // store layouter control
+    this.layouter = null;
   },
 
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady: function() {
+
+    // init layouter control
+    this.initLayouter();
 
   },
 
@@ -54,7 +64,7 @@ Page({
    */
   onShow: function() {
     let media = this.data.media || [];
-    Utils.log(`onShow ...media:${media}`);
+    Utils.log('onShow ...media: ', media);
     media.forEach(item => {
       if (item.type === 'pusher') {
         //return for pusher
@@ -120,7 +130,7 @@ Page({
 
   bindPullInput(e) {
     this.setData({
-      playUrl: e.detail.value
+      pullUrl: e.detail.value
     })
   },
 
@@ -138,6 +148,39 @@ Page({
   getPusherComponent: function() {
     const tttPusher = this.selectComponent(`#rtc-pusher`);
     return tttPusher;
+  },
+
+  /**
+   * 获取屏幕尺寸以用于之后的视窗计算
+   */
+  initLayouter: function() {
+    // get window size info from systemInfo
+    const systemInfo = app.globalData.systemInfo;
+    // 64 is the height of bottom toolbar
+    this.layouter = new Layouter(systemInfo.windowWidth, systemInfo.windowHeight - 64);
+  },
+
+  /**
+   * calculate size based on current media length
+   * sync the layout info into each media object
+   */
+  syncLayout(media) {
+    let sizes = this.layouter.getSize(media.length);
+    for (let i = 0; i < sizes.length; i++) {
+      let size = sizes[i];
+      let item = media[i];
+
+      if (item.holding) {
+        //skip holding item
+        continue;
+      }
+
+      item.left = parseFloat(size.x).toFixed(2);
+      item.top = parseFloat(size.y).toFixed(2);
+      item.width = parseFloat(size.width).toFixed(2);
+      item.height = parseFloat(size.height).toFixed(2);
+    }
+    return media;
   },
 
   /**
@@ -164,9 +207,9 @@ Page({
         holding: false,
         url: url,
         left: 0,
-        top: 0,
-        width: 320,
-        height: 240
+        top: 320,
+        width: 160,
+        height: 120
       });
     } else {
       //player
@@ -177,15 +220,50 @@ Page({
         cid: `${cid}`,
         holding: false,
         url: url,
-        left: 320,
-        top: 0,
-        width: 320,
-        height: 240
+        left: 160,
+        top: 320,
+        width: 160,
+        height: 120
       });
     }
 
+    /*
+    media = this.syncLayout(media);
+	return this.refreshMedia(media);
+	*/
     this.setData({
       media: media
+    });
+  },
+
+  /**
+   * call setData to update a list of media to this.data.media
+   * this will trigger UI re-rendering
+   */
+  refreshMedia: function(media) {
+    return new Promise((resolve) => {
+      for (let i = 0; i < media.length; i++) {
+        if (i < max_user) {
+          //show
+          media[i].holding = false;
+        } else {
+          //hide 
+          media[i].holding = true;
+        }
+      }
+
+      if (media.length > max_user) {
+        wx.showToast({
+          title: '由于房内人数超过7人，部分视频未被加载显示',
+        });
+      }
+
+      Utils.log(`updating media: ${JSON.stringify(media)}`);
+      this.setData({
+        media: media
+      }, () => {
+        resolve();
+      });
     });
   },
 

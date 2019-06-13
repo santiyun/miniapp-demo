@@ -7,6 +7,7 @@ import {
   TTTLog
 } from '../../lib/miniapp-sdk-3t';
 
+// 
 // 最大用户数量
 const max_user = 7;
 const Layouter = require('../../utils/layout.js');
@@ -19,6 +20,7 @@ const TEST_SERVER = require('../../utils/config.js').TEST_SERVER;
 const Uploader = require('../../utils/uploader.js');
 const LogUploader = Uploader.LogUploader;
 const LogUploaderTask = Uploader.LogUploaderTask;
+//
 
 Page({
 
@@ -99,9 +101,11 @@ Page({
     // default role to broadcaster
     this.role = parseInt(options.role) || 1;
     // 是否自动拉流
-	this.autoPull = (options.autoPull === 'true') ? true : false;
-	
-	Utils.log(`this.autoPull : ${this.autoPull}`);
+    this.autoPull = (options.autoPull === 'true') ? true : false;
+    // 是否自动推流
+    this.autoPush = (options.autoPush == 'true') ? true : false;
+
+    Utils.log(`this.autoPull : ${this.autoPull} this.autoPush : ${this.autoPush}`);
     //
 
     this.uid = options.userId;
@@ -155,6 +159,11 @@ Page({
 
     // init TTT Engine
     this.initEngine(uid, roomId)
+      .then(() => {
+        if (this.autoPush) {
+          this.publish();
+        }
+      })
       .catch(e => {
         Utils.log(`init TTT Engine failed: ${e}`);
         wx.showToast({
@@ -174,7 +183,9 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow: function() {
-    let media = this.data.media || [];
+	let media = this.data.media || [];
+	Utils.log('onShow ...media: ', media);
+
     media.forEach(item => {
       if (item.type === 'pusher') {
         //return for pusher
@@ -287,8 +298,8 @@ Page({
       //pusher
       media.splice(0, 0, {
         key: options.key,
-		type: mediaType,
-		uid: uid,
+        type: mediaType,
+        uid: uid,
         cid: `${cid}`,
         holding: false,
         url: url,
@@ -302,8 +313,8 @@ Page({
       media.push({
         key: options.key,
         rotation: options.rotation,
-		type: mediaType,
-		uid: uid,
+        type: mediaType,
+        uid: uid,
         cid: `${cid}`,
         holding: false,
         url: url,
@@ -341,16 +352,16 @@ Page({
    * remove all the media item
    */
   removeAllMedia: function(mediaType) {
-	  Utils.log('remove all the media item');
-	  let media = this.data.media || [];
-	  media = media.filter(item => {
-		return `${item.type}` !== `${mediaType}`
-	  });
-	  
-	  if (media.length !== this.data.media.length) {
-		media = this.syncLayout(media);
-		this.refreshMedia(media);
-	  }
+    Utils.log('remove all the media item');
+    let media = this.data.media || [];
+    media = media.filter(item => {
+      return `${item.type}` !== `${mediaType}`
+    });
+
+    if (media.length !== this.data.media.length) {
+      media = this.syncLayout(media);
+      this.refreshMedia(media);
+    }
   },
 
   /**
@@ -415,30 +426,30 @@ Page({
    * close all the subscribe media
    */
   closeAllSubscribe: function() {
-	Utils.log('close all the subscribe media');
-	return new Promise((resolve) => {
-		let media = this.data.media || [];
+    Utils.log('close all the subscribe media');
+    return new Promise((resolve) => {
+      let media = this.data.media || [];
 
-		let client = this.client;
-		for (let i = 0; i < media.length; i++) {
-			let item = media[i];
-			if (item.type === 'player') {
-				client.unsubscribe({
-					userId    : item.uid,
-					connectId : item.cid,
-					onSuccess : () => {
-						Utils.log(`unsubscribe ${item.uid} ok`);
-					},
-					onFailure : () => {
-						Utils.log(`unsubscribe ${item.uid} fail`);
-					}
-				});
-			}
-		}
-		// 
-		this.removeAllMedia('player');
-		resolve();
-	});
+      let client = this.client;
+      for (let i = 0; i < media.length; i++) {
+        let item = media[i];
+        if (item.type === 'player') {
+          client.unsubscribe({
+            userId: item.uid,
+            connectId: item.cid,
+            onSuccess: () => {
+              Utils.log(`unsubscribe ${item.uid} ok`);
+            },
+            onFailure: () => {
+              Utils.log(`unsubscribe ${item.uid} fail`);
+            }
+          });
+        }
+      }
+      // 
+      this.removeAllMedia('player');
+      resolve();
+    });
   },
 
   onModeClick: function(event) {
@@ -504,7 +515,7 @@ Page({
    * subscribe / unsubscribe
    */
   onUnsubscribeClick: function() {
-      this.unsubscribe();
+    this.unsubscribe();
   },
 
   subscribe: function() {
@@ -573,7 +584,7 @@ Page({
   },
 
   unsubscribe: function() {
-	this.closeAllSubscribe();
+    this.closeAllSubscribe();
   },
 
   /**
@@ -587,6 +598,7 @@ Page({
   },
 
   publish: function() {
+    Utils.log(`client publish`);
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
         // and get my stream publish url
@@ -603,7 +615,7 @@ Page({
             }
           });
         } else {
-          reject(new Error("Publish forbidden"));
+          reject(new Error("Publish forbidden. Please check you user-role."));
         }
       }
     }).then(url => {
@@ -621,9 +633,20 @@ Page({
         this.setData({
           pushing: true
         });
+
+        // 
+        // uid    -- userId
+        // opType -- add or remove ? -- 此处为 add
+        let opType = 1;
+        let userIds = [];
+        userIds.push({
+          uid: this.uid
+        });
+        this.setSEI(userIds, 1);
+        // 
       } else {
-		reject(new Error("Publish forbidden"));
-	  }
+        reject(new Error("Publish forbidden"));
+      }
     }).catch(e => {
       Utils.log(`publish failed: ${e}`);
       wx.showToast({
@@ -635,6 +658,7 @@ Page({
   },
 
   unpublish: function() {
+    Utils.log(`client unpublish`);
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
         let client = this.client
@@ -658,6 +682,17 @@ Page({
       this.setData({
         pushing: false
       });
+
+      // 
+      // uid    -- userId
+      // opType -- add or remove ? -- 此处为 add
+      let opType = 1;
+      let userIds = [];
+      userIds.push({
+        uid: this.uid
+      });
+      this.setSEI(userIds, 1);
+      // 
     }).catch(e => {
       Utils.log(`unpublish failed: ${e}`);
       wx.showToast({
@@ -676,8 +711,8 @@ Page({
     //
     this.setData({
       pushing: false
-	});
-	
+    });
+
     Utils.log('pusher failed completely', "error");
     wx.showModal({
       title: '发生错误',
@@ -696,9 +731,9 @@ Page({
   onMuteClick: function() {
     this.setData({
       muted: !this.data.muted
-	});
-	
-	Utils.log(`muted : ${this.data.muted}`);
+    });
+
+    Utils.log(`muted : ${this.data.muted}`);
   },
 
   /**
@@ -857,10 +892,10 @@ Page({
       // store TTT Engine 
       this.client = client;
       client.setRole({
-		  role: this.role,
-		  onSuccess: () => {},
-		  onFailure: () => {}
-	  });
+        role: this.role,
+        onSuccess: () => {},
+        onFailure: () => {}
+      });
       client.init({
         appId: APPID,
         userId: uid,
@@ -972,6 +1007,83 @@ Page({
     })
   },
 
+  setSEI: function(userIds, type) {
+	Utils.log(`setSEI ${type}`);
+    //
+    let sei = {
+      ts: '',
+      ver: '20161227',
+      canvas: {
+        bgrad: [
+          232,
+          230,
+          232
+        ],
+        h: 640,
+        w: 368
+      },
+      mid: '',
+      pos: []
+    };
+
+	// 
+    let position = {
+      id: 0,
+      h: 0,
+      w: 0,
+      x: 0,
+      y: 0,
+      z: 1
+    };
+
+    sei.mid = this.uid; // 主播userId
+	sei.ts = new Date().getTime(); // +new Date();
+	
+    // for 主播位置
+    position.id = this.uid; // 被定位的用户userId
+    position.x = 0;
+    position.y = 0;
+    position.w = 1;
+    position.h = 1;
+    position.z = 0;
+
+    sei.pos.push(position);
+
+    // for 列表中其他用户位置
+    for (let i = 0; i < userIds.length; i++) {
+      let item = userIds[i];
+      let position = {
+        id: item.uid,
+        h: 0.25,
+        w: 0.33,
+        x: ((sei.pos.length - 1) % 3) * 0.33,
+        y: parseInt((sei.pos.length - 1) / 3) * 0.25 + 0.5,
+        z: 1
+      };
+
+      let isHave = false;
+      sei.pos.forEach(e => {
+        if (e.id === item.uid) {
+          isHave = true;
+        }
+      })
+
+      if (!isHave) {
+        sei.pos.push(position);
+        i++;
+      }
+    }
+
+	let client = this.client;
+    client.setSEI({
+		userId : this.uid,
+		opType : type,
+		sei,
+		onSuccess : () => {},
+		onFailure : () => {}
+	});
+  },
+
   /**
    * 如果
    */
@@ -1071,8 +1183,8 @@ Page({
     client.on({
       event: "kickout",
       callback: (e) => {
-		Utils.log('I got kicked out by the others');
-		
+        Utils.log('I got kicked out by the others');
+
         let errObj = e || {};
         let uid = errObj.uid || 0;
         let reason = errObj.reason || "";
@@ -1084,12 +1196,12 @@ Page({
         });
 
         // destroy 
-		client.destroy();
-		
-		// 跳回首页
-		wx.navigateTo({
-			url: `../index/index`
-			});		
+        client.destroy();
+
+        // 跳回首页
+        wx.navigateTo({
+          url: `../index/index`
+        });
       }
     })
 
@@ -1107,12 +1219,12 @@ Page({
         });
 
         // destroy 
-		client.destroy();
-		
-		// 跳回首页
-		wx.navigateTo({
-			url: `../index/index`
-			});
+        client.destroy();
+
+        // 跳回首页
+        wx.navigateTo({
+          url: `../index/index`
+        });
       }
     })
 

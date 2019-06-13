@@ -67,7 +67,7 @@ page {
 .content .commonBtn {
   background-color: #fefffe;
   color: #5083aa;
-  width: 240rpx;
+  width: 200rpx;
   height: 80rpx;
   font-size: 28rpx;
   line-height: 80rpx;

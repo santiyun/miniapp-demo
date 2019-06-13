@@ -23,7 +23,7 @@
         </radio-group>
       </view>
       <view class="rowWrapper flex-center-row">
-        <checkbox-group bindchange="checkboxChangePushOn">
+        <checkbox-group bindchange="checkboxChangeAutoPush">
           <label class="checkbox" wx:for="{{chkPushOn}}">
             <checkbox value="{{item.name}}" checked="{{item.checked}}" />
             <text class="h2">{{item.display}}</text>
