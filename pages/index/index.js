@@ -27,22 +27,23 @@ Page({
       display: '观众',
       value: 3
     }],
+    // 用户角色
+	userRole: 2,
+	// 
     chkPushOn: [{
       name: 'PUSH_STREAM',
       display: '自动推流',
-      checked: false
+      checked: true
     }],
     chkAutoPull: [{
       name: 'AUTO_SUBSCRIBE',
       display: '自动拉流',
-      checked: false
+      checked: true
     }],
     // 入房间后，是否自动推流
-    isAutoPush: false,
+    isAutoPush: true,
     // 入房间后，是否自动拉流
-    isAutoPull: false,
-    // 用户角色
-    userRole: 2
+    isAutoPull: true
   },
 
   /**
