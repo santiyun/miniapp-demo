@@ -160,7 +160,7 @@ Page({
         }
       })
       .catch(e => {
-        Utils.log(`init TTT Engine failed: ${e}`);
+        Utils.log(`init TTT Engine failed: ${e.code} ${e.reason}`);
         wx.showToast({
           title: `客户端初始化失败`,
           icon: 'none',
@@ -460,9 +460,13 @@ Page({
       content: '将退出当前房间，确定吗？',
       showCancel: true,
       success: () => {
-        if (!this.leaving) {
-          this.leaving = true;
-          this.navigateBack();
+        if (res.confirm) {
+          if (!this.leaving) {
+            this.leaving = true;
+            this.navigateBack();
+          }
+        } else if (res.cancel) {
+          console.log('用户点击取消')
         }
       }
     })
@@ -532,6 +536,11 @@ Page({
             reject(e)
           }
         });
+      } else {
+        reject({
+          code: 400,
+          reason: `connState : ${this.data.connState}. Not ready.`
+        });
       }
     }).then(data => {
       Utils.log(`subscribe url: ${data.url}`);
@@ -564,9 +573,9 @@ Page({
       }
       //
     }).catch(e => {
-      Utils.log(`subscribe failed: ${e}`);
+      Utils.log(`subscribe failed: ${e.code} ${e.reason}`);
       wx.showToast({
-        title: `拉流失败: ${e}`,
+        title: `拉流失败: ${e.code} ${e.reason}`,
         icon: 'none',
         duration: 5000
       });
@@ -580,20 +589,19 @@ Page({
       client.unsubscribe({
         userId,
         onSuccess: () => {
-		  Utils.log(`unsubscribe ${userId} ok`);
-		// 
-		this.removeMedia(userId);
-		resolve();
+          Utils.log(`unsubscribe ${userId} ok`);
+          // 
+          this.removeMedia(userId);
+          resolve();
         },
         onFailure: (e) => {
-		  Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
-		  reject(e);
+          reject(e);
         }
       });
     }).catch(e => {
-      Utils.log(`unsubscribe failed: ${e}`);
+      Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
       wx.showToast({
-        title: `停拉流失败: ${e}`,
+        title: `停拉流失败: ${e.code} ${e.reason}`,
         icon: 'none',
         duration: 5000
       });
@@ -628,8 +636,16 @@ Page({
             }
           });
         } else {
-          reject(new Error("Publish forbidden. Please check you user-role."));
+          reject({
+            code: 400,
+            reason: "Publish forbidden. Please check you user-role."
+          });
         }
+      } else {
+        reject({
+          code: 400,
+          reason: `connState : ${this.data.connState}. Not ready.`
+        });
       }
     }).then(url => {
       Utils.log(`publish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid} url: ${url}`);
@@ -658,12 +674,15 @@ Page({
         this.setSEI(userIds, 1);
         // 
       } else {
-        reject(new Error("Publish forbidden"));
+        reject({
+          code: 400,
+          reason: "Publish forbidden"
+        });
       }
     }).catch(e => {
-      Utils.log(`publish failed: ${e}`);
+      Utils.log(`publish failed: ${e.code} ${e.reason}`);
       wx.showToast({
-        title: `推流失败`,
+        title: `推流失败: ${e.code} ${e.reason}`,
         icon: 'none',
         duration: 5000
       });
@@ -684,6 +703,11 @@ Page({
             Utils.log(`client unpublish failed: ${e.code} ${e.reason}`);
             reject(e)
           }
+        });
+      } else {
+        reject({
+          code: 400,
+          reason: `connState : ${this.data.connState}. Not ready.`
         });
       }
     }).then(() => {
@@ -707,9 +731,9 @@ Page({
       this.setSEI(userIds, 1);
       // 
     }).catch(e => {
-      Utils.log(`unpublish failed: ${e}`);
+      Utils.log(`unpublish failed: ${e.code} ${e.reason}`);
       wx.showToast({
-        title: `停流失败`,
+        title: `停流失败: ${e.code} ${e.reason}`,
         icon: 'none',
         duration: 5000
       });
@@ -909,7 +933,8 @@ Page({
         role: this.role,
         onSuccess: () => {},
         onFailure: () => {}
-      });
+	  });
+	  // 
       client.init({
         appId: APPID,
         userId: uid,
@@ -1120,7 +1145,7 @@ Page({
     client.on({
       event: "video-rotation",
       callback: (e) => {
-        Utils.log(`video rotated: ${e.rotation} ${e.cid}`)
+        Utils.log(`event: video-rotated: ${e.rotation} ${e.cid}`)
         setTimeout(() => {
           const player = this.getPlayerComponent(e.cid);
           player && player.rotate(e.rotation);
@@ -1129,9 +1154,22 @@ Page({
     });
 
     client.on({
+      event: "session-status",
+      callback: (e) => {
+        Utils.log(`event: session-status -- uid: ${e.uid} cid: ${e.cid} status: ${e.status}`);
+        // 
+        wx.showToast({
+          title: `session-status：${e.status}`,
+          icon: 'none',
+          duration: 5000
+        });
+      }
+    })
+
+    client.on({
       event: "user-online",
       callback: (userData) => {
-        Utils.log(`user-online userId: ${userData.userId}`);
+        Utils.log(`event: user-online uid: ${userData.userId}`);
         // 
         let userIds = this.data.userIds || [];
         userIds.push(`${userData.userId}`);
@@ -1145,7 +1183,7 @@ Page({
     client.on({
       event: "user-offline",
       callback: (userId) => {
-        Utils.log(`user-online userId: ${userId}`);
+        Utils.log(`event: user-online -- uid: ${userId}`);
 
         // 
         let userIds = this.data.userIds || [];
@@ -1174,47 +1212,12 @@ Page({
       callback: (e) => {
         let userId = e.uid;
         const ts = new Date().getTime();
-        Utils.log(`stream ${userId} added. this.autoPull: ${this.autoPull}`);
+        Utils.log(`event: stream-added -- uid: ${userId} this.autoPull: ${this.autoPull}`);
         /**
          * subscribe to get corresponding url
          */
         if (this.autoPull) {
           this.subscribe(userId);
-          /*
-          client.subscribe({
-            userId,
-            onSuccess: (data) => {
-              Utils.log(`stream ${cid} subscribed successful`);
-              let media = this.data.media || [];
-              let matchItem = null;
-              for (let i = 0; i < media.length; i++) {
-                let item = this.data.media[i];
-                if (`${item.cid}` === `${cid}`) {
-                  //if existing, record this as matchItem and break
-                  matchItem = item;
-                  break;
-                }
-              }
-
-              if (!matchItem) {
-                //if not existing, add new media
-                this.addMedia('player', data.userId, data.connectId, data.url, {
-                  key: ts,
-                  rotation: data.rotation
-                })
-              } else {
-                // if existing, update property
-                // change key property to refresh live-player
-                this.updateMedia(matchItem.cid, {
-                  url: data.url
-                });
-              }
-            },
-            onFailure: (e) => {
-              Utils.log(`stream subscribed failed ${e} ${e.code} ${e.reason}`);
-            }
-		  });
-		  */
         }
         // 
       }
@@ -1227,7 +1230,7 @@ Page({
       event: "stream-removed",
       callback: (e) => {
         let uid = e.uid;
-        Utils.log(`stream ${uid} removed`);
+        Utils.log(`event: stream-removed -- uid: ${uid}`);
         this.removeMedia(uid);
       }
     });
@@ -1243,7 +1246,7 @@ Page({
         let errObj = e || {};
         let uid = errObj.uid || 0;
         let reason = errObj.reason || "";
-        Utils.log(`kickout uid: ${uid}, reason: ${reason}`);
+        Utils.log(`event: kickout -- uid: ${uid}, reason: ${reason}`);
 
         // update the conn state.
         this.setData({
@@ -1266,7 +1269,7 @@ Page({
     client.on({
       event: "disconnected",
       callback: (e) => {
-        Utils.log('Websocket is disconnected');
+        Utils.log('event: disconnected');
 
         // update the conn state.
         this.setData({
@@ -1295,7 +1298,7 @@ Page({
         let errObj = e || {};
         let code = errObj.code || 0;
         let reason = errObj.reason || "";
-        Utils.log(`error: ${code}, reason: ${reason}`);
+        Utils.log(`event: error -- code: ${code}, reason: ${reason}`);
         let ts = new Date().getTime();
 
         // TODO : reconnect for some code
@@ -1314,7 +1317,7 @@ Page({
     client.on({
       event: 'update-url',
       callback: (e) => {
-        Utils.log(`update-url: ${JSON.stringify(e)}`);
+        Utils.log(`event: update-url -- ${JSON.stringify(e)}`);
         let cid = e.cid;
         let url = e.url;
         let ts = new Date().getTime();

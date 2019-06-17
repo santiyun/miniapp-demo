@@ -19,11 +19,11 @@
 
   <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 180px)">
     <cover-image class="common_button" src="./Resources/pull.png" bindtap='onSubscribeClick'></cover-image>
-    <cover-view class='common_text'>开订阅</cover-view>
+    <cover-view class='common_text'>拉流</cover-view>
   </cover-view>
   <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 120px)">
     <cover-image class="common_button" src="./Resources/pull-dis.png" bindtap='onUnsubscribeClick'></cover-image>
-    <cover-view class='common_text'>关订阅</cover-view>
+    <cover-view class='common_text'>停拉流</cover-view>
   </cover-view>
 
   <cover-view style="width:65px; height: 115px; position: absolute; bottom: 55px; margin-left: calc(50% - 32px)" hidden='{{!showHDTips}}'>
