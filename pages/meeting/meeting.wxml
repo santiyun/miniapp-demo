@@ -9,9 +9,21 @@
     </block>
   </view>
 
-  <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 32px)">
-    <cover-image class="common_button" src="./Resources/{{debug?'log-dis':'log'}}.png" bindtap='onDebugClick'></cover-image>
-    <cover-view class='common_text'>{{debug?'关调试':'开调试'}}</cover-view>
+  <view style="border-top: 1px solid rgba(0, 0, 0, 0.1); display: inline-block; width: 80px; height: 50px; position: absolute; left: 10px; bottom: 80px">
+    <picker bindchange="bindPickerChange" value="{{selectIndex}}" range="{{userIds}}">
+      <view class="picker">
+        <text class="h2">请选择用户：{{userIds[selectIndex]}}</text>
+      </view>
+    </picker>
+  </view>
+
+  <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 180px)">
+    <cover-image class="common_button" src="./Resources/pull.png" bindtap='onSubscribeClick'></cover-image>
+    <cover-view class='common_text'>开订阅</cover-view>
+  </cover-view>
+  <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 120px)">
+    <cover-image class="common_button" src="./Resources/pull-dis.png" bindtap='onUnsubscribeClick'></cover-image>
+    <cover-view class='common_text'>关订阅</cover-view>
   </cover-view>
 
   <cover-view style="width:65px; height: 115px; position: absolute; bottom: 55px; margin-left: calc(50% - 32px)" hidden='{{!showHDTips}}'>
@@ -29,10 +41,6 @@
         <cover-view class='bottom_text'>{{pushing?'停推流':'开推流'}}</cover-view>
       </cover-view>
       <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="./Resources/{{'pull-dis'}}.png" bindtap='onUnsubscribeClick'></cover-image>
-        <cover-view class='bottom_text'>关订阅</cover-view>
-      </cover-view>
-      <cover-view class='bottom_box'>
         <cover-image class="bottom_button" src="Resources/switch-cam.png" bindtap='onSwitchCameraClick'></cover-image>
         <cover-view class='bottom_text'>切换</cover-view>
       </cover-view>
@@ -44,7 +52,7 @@
         <cover-image class="bottom_button" src="./Resources/{{muted?'mic-dis':'mic'}}.png" bindtap='onMuteClick'></cover-image>
         <cover-view class='bottom_text'>声音</cover-view>
       </cover-view>
-	  <!--
+      <!--
       <cover-view class='bottom_box'>
         <cover-image class="bottom_button" src="./Resources/{{orientation == 'vertical'?'portrait':'landscape'}}.png" bindtap='onOrientationClick'></cover-image>
         <cover-view class='bottom_text'>{{orientation == 'vertical'?'竖屏':'横屏'}}</cover-view>
@@ -54,9 +62,15 @@
         <cover-image class="bottom_button" src="./Resources/leave.png" bindtap='onLeaveClick'></cover-image>
         <cover-view class='bottom_text'>退出</cover-view>
       </cover-view>
+      <!--
       <cover-view class='bottom_box'>
         <cover-image class="bottom_button" src="./Resources/video_mode.png" bindtap='onSwitchMode'></cover-image>
         <cover-view class='bottom_text'>视频模式</cover-view>
+      </cover-view>
+	  -->
+      <cover-view class='bottom_box'>
+        <cover-image class="bottom_button" src="./Resources/{{debug?'log-dis':'log'}}.png" bindtap='onDebugClick'></cover-image>
+        <cover-view class='bottom_text'>{{debug?'关调试':'开调试'}}</cover-view>
       </cover-view>
     </cover-view>
   </view>

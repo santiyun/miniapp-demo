@@ -47,6 +47,7 @@ Page({
      * }
      */
     media: [],
+    userIds: [], // 当前房间内的用户列表
     /**
      * muted
      */
@@ -58,6 +59,8 @@ Page({
      */
     beauty: 0,
     totalUser: 1,
+    selectIndex: 0,
+    selectUserId: 0,
     /**
      * debug
      */
@@ -74,17 +77,9 @@ Page({
      */
     pushing: false,
     /**
-     * 当前的拉流状态
-     */
-    pulling: false,
-    /**
      * 是否启用摄像头
      */
     enableCamera: true,
-    /**
-     * 是否拉流
-     */
-    pulling: false,
     /**
      * 横屏 or 竖屏
      */
@@ -183,8 +178,8 @@ Page({
    * 生命周期函数--监听页面显示
    */
   onShow: function() {
-	let media = this.data.media || [];
-	Utils.log('onShow ...media: ', media);
+    let media = this.data.media || [];
+    Utils.log('onShow ...media: ', media);
 
     media.forEach(item => {
       if (item.type === 'pusher') {
@@ -332,11 +327,11 @@ Page({
   /**
    * remove media from view
    */
-  removeMedia: function(cid) {
-    Utils.log(`remove media ${cid}`);
+  removeMedia: function(uid) {
+    Utils.log(`remove media ${uid}`);
     let media = this.data.media || [];
     media = media.filter(item => {
-      return `${item.cid}` !== `${cid}`
+      return `${item.uid}` !== `${uid}`
     });
 
     if (media.length !== this.data.media.length) {
@@ -422,36 +417,6 @@ Page({
     });
   },
 
-  /**
-   * close all the subscribe media
-   */
-  closeAllSubscribe: function() {
-    Utils.log('close all the subscribe media');
-    return new Promise((resolve) => {
-      let media = this.data.media || [];
-
-      let client = this.client;
-      for (let i = 0; i < media.length; i++) {
-        let item = media[i];
-        if (item.type === 'player') {
-          client.unsubscribe({
-            userId: item.uid,
-            connectId: item.cid,
-            onSuccess: () => {
-              Utils.log(`unsubscribe ${item.uid} ok`);
-            },
-            onFailure: () => {
-              Utils.log(`unsubscribe ${item.uid} fail`);
-            }
-          });
-        }
-      }
-      // 
-      this.removeAllMedia('player');
-      resolve();
-    });
-  },
-
   onModeClick: function(event) {
     var mode = "SD";
     switch (event.target.dataset.mode) {
@@ -473,6 +438,17 @@ Page({
       mode: mode,
       showHDTips: false
     })
+  },
+
+  bindPickerChange: function(e) {
+    let index = e.detail.value;
+    const selectUserId = this.data.userIds[index];
+    this.setData({
+      selectIndex: index,
+      selectUserId: selectUserId
+    });
+
+    Utils.log(`picker发送选择改变，选中项为：${e.detail.value} selectUserId: ${this.data.selectUserId}`);
   },
 
   /**
@@ -511,25 +487,42 @@ Page({
     }
   },
 
-  /**
-   * subscribe / unsubscribe
-   */
-  onUnsubscribeClick: function() {
-    this.unsubscribe();
+  onSubscribeClick: function() {
+    if (this.data.selectUserId !== 0) {
+      this.subscribe(this.data.selectUserId);
+    } else {
+      wx.showToast({
+        title: `请选择 userId`,
+        icon: 'none',
+        duration: 5000
+      });
+    }
   },
 
-  subscribe: function() {
-    // this.cid
+  /**
+   * unsubscribe
+   */
+  onUnsubscribeClick: function() {
+    if (this.data.selectUserId !== 0) {
+      this.unsubscribe(this.data.selectUserId);
+    } else {
+      wx.showToast({
+        title: `请选择 userId`,
+        icon: 'none',
+        duration: 5000
+      });
+    }
+  },
+
+  subscribe: function(userId) {
+    // 
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
         // TODO : retrieve the userId & connectId from peers(local store)
         // 
-        let userId = 0;
-        let connectId = '';
-        let client = this.client
+        let client = this.client;
         client.subscribe({
           userId,
-          connectId,
           onSuccess: (data) => {
             Utils.log(`client subscribe success. url:${data.url}`);
             resolve(data);
@@ -549,7 +542,7 @@ Page({
       let matchItem = null;
       for (let i = 0; i < media.length; i++) {
         let item = this.data.media[i];
-        if (`${item.cid}` === `${cid}`) {
+        if (`${item.cid}` === `${data.connectId}`) {
           //if existing, record this as matchItem and break
           matchItem = item;
           break;
@@ -560,7 +553,7 @@ Page({
         //if not existing, add new media
         this.addMedia('player', data.userId, data.connectId, data.url, {
           key: ts,
-          rotation: rotation
+          rotation: data.rotation
         })
       } else {
         // if existing, update property
@@ -570,21 +563,41 @@ Page({
         });
       }
       //
-      this.setData({
-        pulling: true
-      });
     }).catch(e => {
       Utils.log(`subscribe failed: ${e}`);
       wx.showToast({
-        title: `拉流失败`,
+        title: `拉流失败: ${e}`,
         icon: 'none',
         duration: 5000
       });
     });
   },
 
-  unsubscribe: function() {
-    this.closeAllSubscribe();
+  unsubscribe: function(userId) {
+    Utils.log(`close ${userId} subscribe media`);
+    new Promise((resolve) => {
+      let client = this.client;
+      client.unsubscribe({
+        userId,
+        onSuccess: () => {
+		  Utils.log(`unsubscribe ${userId} ok`);
+		// 
+		this.removeMedia(userId);
+		resolve();
+        },
+        onFailure: (e) => {
+		  Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
+		  reject(e);
+        }
+      });
+    }).catch(e => {
+      Utils.log(`unsubscribe failed: ${e}`);
+      wx.showToast({
+        title: `停拉流失败: ${e}`,
+        icon: 'none',
+        duration: 5000
+      });
+    });
   },
 
   /**
@@ -676,7 +689,7 @@ Page({
     }).then(() => {
       Utils.log(`unpublish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid}`);
 
-      this.removeMedia(this.cid);
+      this.removeMedia(this.uid);
 
       //
       this.setData({
@@ -808,7 +821,7 @@ Page({
   onSpeakTurnClick: function() {
     if (this.canPublsh()) {
       this.becomeAudience().then(() => {
-        this.removeMedia(this.cid);
+        this.removeMedia(this.uid);
       }).catch(e => {
         Utils.log(`switch to audience failed ${e.stack}`);
       })
@@ -861,7 +874,8 @@ Page({
     // get window size info from systemInfo
     const systemInfo = app.globalData.systemInfo;
     // 64 is the height of bottom toolbar
-    this.layouter = new Layouter(systemInfo.windowWidth, systemInfo.windowHeight - 64);
+    // 120 is the height of input area 
+    this.layouter = new Layouter(systemInfo.windowWidth, systemInfo.windowHeight - 64 - 120);
   },
 
   /**
@@ -1008,7 +1022,7 @@ Page({
   },
 
   setSEI: function(userIds, type) {
-	Utils.log(`setSEI ${type}`);
+    Utils.log(`setSEI ${type}`);
     //
     let sei = {
       ts: '',
@@ -1026,7 +1040,7 @@ Page({
       pos: []
     };
 
-	// 
+    // 
     let position = {
       id: 0,
       h: 0,
@@ -1037,14 +1051,14 @@ Page({
     };
 
     sei.mid = this.uid; // 主播userId
-	sei.ts = new Date().getTime(); // +new Date();
-	
+    sei.ts = new Date().getTime(); // +new Date();
+
     // for 主播位置
     position.id = this.uid; // 被定位的用户userId
     position.x = 0;
     position.y = 0;
-    position.w = 1;
-    position.h = 1;
+    position.w = 0.5;
+    position.h = 0.5;
     position.z = 0;
 
     sei.pos.push(position);
@@ -1074,14 +1088,14 @@ Page({
       }
     }
 
-	let client = this.client;
+    let client = this.client;
     client.setSEI({
-		userId : this.uid,
-		opType : type,
-		sei,
-		onSuccess : () => {},
-		onFailure : () => {}
-	});
+      userId: this.uid,
+      opType: type,
+      sei,
+      onSuccess: () => {},
+      onFailure: () => {}
+    });
   },
 
   /**
@@ -1113,22 +1127,62 @@ Page({
         }, 1000);
       }
     });
+
+    client.on({
+      event: "user-online",
+      callback: (userData) => {
+        Utils.log(`user-online userId: ${userData.userId}`);
+        // 
+        let userIds = this.data.userIds || [];
+        userIds.push(`${userData.userId}`);
+        //
+        this.setData({
+          userIds: userIds
+        });
+      }
+    });
+
+    client.on({
+      event: "user-offline",
+      callback: (userId) => {
+        Utils.log(`user-online userId: ${userId}`);
+
+        // 
+        let userIds = this.data.userIds || [];
+        userIds = userIds.filter(item => {
+          return `${item}` !== `${userId}`
+        });
+
+        let selectUserId = this.data.selectUserId;
+
+        if (selectUserId === userId) {
+          selectUserId = (userIds.length > 0 ? userIds[0] : 0);
+        }
+        //
+        this.setData({
+          userIds: userIds,
+          selectUserId: selectUserId
+        });
+      }
+    });
+
     /**
      * fired when new stream join the room
      */
     client.on({
       event: "stream-added",
       callback: (e) => {
-        let cid = e.cid;
+        let userId = e.uid;
         const ts = new Date().getTime();
-        Utils.log(`stream ${cid} added. this.autoPull: ${this.autoPull}`);
+        Utils.log(`stream ${userId} added. this.autoPull: ${this.autoPull}`);
         /**
          * subscribe to get corresponding url
          */
         if (this.autoPull) {
+          this.subscribe(userId);
+          /*
           client.subscribe({
-            userId: e.uid,
-            connectId: cid,
+            userId,
             onSuccess: (data) => {
               Utils.log(`stream ${cid} subscribed successful`);
               let media = this.data.media || [];
@@ -1159,7 +1213,8 @@ Page({
             onFailure: (e) => {
               Utils.log(`stream subscribed failed ${e} ${e.code} ${e.reason}`);
             }
-          });
+		  });
+		  */
         }
         // 
       }
@@ -1171,9 +1226,9 @@ Page({
     client.on({
       event: "stream-removed",
       callback: (e) => {
-        let cid = e.cid;
-        Utils.log(`stream ${cid} removed`);
-        this.removeMedia(cid);
+        let uid = e.uid;
+        Utils.log(`stream ${uid} removed`);
+        this.removeMedia(uid);
       }
     });
 

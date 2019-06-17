@@ -37,10 +37,12 @@
         </checkbox-group>
         <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">加入房间</button>
       </view>
+	  <!-- 
       <view class="rowWrapper flex-center-row">
-        <text class="h2">点击右侧按钮，将进入推拉流测试页面 --></text>
+        <text class="h2">点击右侧按钮，将进入推拉流测试页面 --</text>
         <button plain="true" bindtap="onTestClick" class="commonBtn">推拉测试</button>
       </view>
+	  -->
     </view>
     <view class="footer flex-center-column">
       <image class="userinfo-avatar" src="{{userInfo.avatarUrl}}" background-size="cover"></image>

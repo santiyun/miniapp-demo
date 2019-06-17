@@ -113,7 +113,7 @@ Component({
      * 推流状态更新回调
      */
     stateChange: function (e) {
-      Utils.log(`live-pusher code: ${e.detail.code} - ${e.detail.message}`)
+      // TODO : Utils.log(`live-pusher code: ${e.detail.code} - ${e.detail.message}`)
       if (e.detail.code === -1307) {
         //re-push
         Utils.log('live-pusher stopped', "error");
@@ -133,10 +133,11 @@ Component({
           })
         }
       }
-    },
+	},
+	
     netStatus: function(e) {
-		// TODO : 用于 流量记录 -- 对账
-      Utils.log(`pusher network: ${JSON.stringify(e.detail)}`);
+      // TODO : 用于 流量记录 -- 对账
+      // Utils.log(`pusher network: ${JSON.stringify(e.detail)}`);
     }
   },
 

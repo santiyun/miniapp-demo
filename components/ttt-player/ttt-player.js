@@ -113,7 +113,7 @@ Component({
      * 播放器状态更新回调
      */
     stateChange: function (e) {
-      Utils.log(`live-player id: ${e.target.id}, code: ${e.detail.code}`)
+      // TODO : Utils.log(`live-player id: ${e.target.id}, code: ${e.detail.code}`)
       let cid = parseInt(e.target.id.split("-")[1]);
       if (e.detail.code === 2004) {
         Utils.log(`live-player ${cid} started playing`);
@@ -128,10 +128,11 @@ Component({
           status: "error"
         })
       }
-    },
+	},
+	
     netStatus: function(e) {
-		// TODO : 用于 流量记录 -- 对账
-      Utils.log(`player network: ${JSON.stringify(e.detail)}`);
+      // TODO : 用于 流量记录 -- 对账
+      // Utils.log(`player network: ${JSON.stringify(e.detail)}`);
     }
   },
   /**
