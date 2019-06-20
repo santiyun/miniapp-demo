@@ -459,7 +459,7 @@ Page({
       title: '确认',
       content: '将退出当前房间，确定吗？',
       showCancel: true,
-      success: () => {
+      success: (res) => {
         if (res.confirm) {
           if (!this.leaving) {
             this.leaving = true;
@@ -807,7 +807,11 @@ Page({
     // 1w logs per task slice
     const sliceSize = 500;
     do {
-      let content = logs.splice(0, sliceSize);
+	  let content = logs.splice(0, sliceSize);
+	  
+	  // 
+	  console.log(`uploadLogs -- ${part} : ${content}`);
+	  // 
       tasks.push(new LogUploaderTask(content, this.roomId, part++, ts, this.uid, this.cid));
     } while (logs.length > sliceSize)
     wx.showLoading({
@@ -983,7 +987,8 @@ Page({
         onFailure: (e) => {
           Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
           reject(e);
-        }
+		},
+		enIploc : false //
       });
     });
   },
@@ -1164,7 +1169,7 @@ Page({
           duration: 5000
         });
       }
-    })
+    });
 
     client.on({
       event: "user-online",

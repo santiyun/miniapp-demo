@@ -219,7 +219,13 @@ Page({
         wx.navigateTo({
           url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
         });
-      }
+      } else {
+		wx.showToast({
+		  title: 'error: lockJoin',
+		  icon: 'none',
+		  duration: 2000
+		})
+	  }
     }
   },
 
