@@ -216,7 +216,7 @@ Page({
 
     // unlock index page join button
     let pages = getCurrentPages();
-    if (pages.length > 1) {
+    if (pages.length >= 1) {
       //unlock join
       let indexPage = pages[0];
       indexPage.unlockJoin();
@@ -225,7 +225,14 @@ Page({
     // unpublish sdk and leave roomId
     if (this.canPublsh()) {
       try {
-        this.client && this.client.unpublish();
+        if (!!this.client) {
+          this.client.unpublish();
+        } else {
+          reject({
+            code: 400,
+            reason: "TTTEngine is null. Are you init?"
+          });
+        }
       } catch (e) {
         Utils.log(`unpublish failed ${e}`);
       }
@@ -437,7 +444,7 @@ Page({
     this.setData({
       mode: mode,
       showHDTips: false
-    })
+    });
   },
 
   bindPickerChange: function(e) {
@@ -525,17 +532,29 @@ Page({
         // TODO : retrieve the userId & connectId from peers(local store)
         // 
         let client = this.client;
-        client.subscribe({
-          userId,
-          onSuccess: (data) => {
-            Utils.log(`client subscribe success. url:${data.url}`);
-            resolve(data);
-          },
-          onFailure: (e) => {
-            Utils.log(`client subscribe failed: ${e.code} ${e.reason}`);
-            reject(e)
-          }
-        });
+        if (!!client) {
+          client.subscribe({
+            userId,
+            onSuccess: (data) => {
+              Utils.log(`client subscribe success. url:${data.url}`);
+              resolve(data);
+            },
+            onFailure: (e) => {
+              Utils.log(`client subscribe failed: ${e.code} ${e.reason}`);
+              wx.showToast({
+                title: `client subscribe failed: ${e.code} ${e.reason}`,
+                icon: 'none',
+                duration: 5000
+              });
+              reject(e);
+            }
+          });
+        } else {
+          reject({
+            code: 400,
+            reason: "TTTEngine is null. Are you init?"
+          });
+        }
       } else {
         reject({
           code: 400,
@@ -583,21 +602,33 @@ Page({
   },
 
   unsubscribe: function(userId) {
-    Utils.log(`close ${userId} subscribe media`);
+    Utils.log(`unsubscribe ${userId} media`);
     new Promise((resolve) => {
       let client = this.client;
-      client.unsubscribe({
-        userId,
-        onSuccess: () => {
-          Utils.log(`unsubscribe ${userId} ok`);
-          // 
-          this.removeMedia(userId);
-          resolve();
-        },
-        onFailure: (e) => {
-          reject(e);
-        }
-      });
+      if (!!client) {
+        client.unsubscribe({
+          userId,
+          onSuccess: () => {
+            Utils.log(`unsubscribe ${userId} ok`);
+            // 
+            this.removeMedia(userId);
+            resolve();
+          },
+          onFailure: (e) => {
+            wx.showToast({
+              title: `client unsubscribe failed: ${e.code} ${e.reason}`,
+              icon: 'none',
+              duration: 5000
+            });
+            reject(e);
+          }
+        });
+      } else {
+        reject({
+          code: 400,
+          reason: "TTTEngine is null. Are you init?"
+        });
+      }
     }).catch(e => {
       Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
       wx.showToast({
@@ -606,6 +637,53 @@ Page({
         duration: 5000
       });
     });
+  },
+
+  // 踢出指定用户
+  onKickoutClick: function() {
+    // 
+    if (!this.data.selectUserId) {
+      wx.showToast({
+        title: `请选择 userId`,
+        icon: 'none',
+        duration: 5000
+      });
+      return;
+    }
+    wx.showModal({
+      title: '遇到使用问题?',
+      content: '点击确定可以上传日志，帮助我们了解您在使用过程中的问题',
+      success: function(res) {
+        if (res.confirm) {
+          // 
+          let client = this.client;
+          if (!!client) {
+            client.kickout({
+              userId: this.data.selectUserId,
+              onSuccess: (data) => {
+                Utils.log('client kickout success.');
+                resolve(data.url);
+              },
+              onFailure: (e) => {
+                Utils.log(`client kickout failed: ${e.code} ${e.reason}`);
+                wx.showToast({
+                  title: `client kickout failed: ${e.code} ${e.reason}`,
+                  icon: 'none',
+                  duration: 5000
+                });
+                reject(e);
+              }
+            });
+          } else {
+            reject({
+              code: 400,
+              reason: "TTTEngine is null. Are you init?"
+            });
+          }
+        }
+      }
+    });
+    //
   },
 
   /**
@@ -624,17 +702,29 @@ Page({
       if (this.data.connState === 2) {
         // and get my stream publish url
         if (this.canPublsh()) {
-          let client = this.client
-          client.publish({
-            onSuccess: (data) => {
-              Utils.log(`client publish success. url:${data.url}`);
-              resolve(data.url);
-            },
-            onFailure: (e) => {
-              Utils.log(`client publish failed: ${e.code} ${e.reason}`);
-              reject(e)
-            }
-          });
+          let client = this.client;
+          if (!!client) {
+            client.publish({
+              onSuccess: (data) => {
+                Utils.log(`client publish success. url:${data.url}`);
+                resolve(data.url);
+              },
+              onFailure: (e) => {
+                Utils.log(`client publish failed: ${e.code} ${e.reason}`);
+                wx.showToast({
+                  title: `client publish failed: ${e.code} ${e.reason}`,
+                  icon: 'none',
+                  duration: 5000
+                });
+                reject(e);
+              }
+            });
+          } else {
+            reject({
+              code: 400,
+              reason: "TTTEngine is null. Are you init?"
+            });
+          }
         } else {
           reject({
             code: 400,
@@ -667,11 +757,11 @@ Page({
         // uid    -- userId
         // opType -- add or remove ? -- 此处为 add
         let opType = 1;
-        let userIds = [];
-        userIds.push({
+        let users = [];
+        users.push({
           uid: this.uid
         });
-        this.setSEI(userIds, 1);
+        this.setSEI(users, 1);
         // 
       } else {
         reject({
@@ -693,17 +783,29 @@ Page({
     Utils.log(`client unpublish`);
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
-        let client = this.client
-        client.unpublish({
-          onSuccess: () => {
-            Utils.log('client unpublish success.');
-            resolve();
-          },
-          onFailure: (e) => {
-            Utils.log(`client unpublish failed: ${e.code} ${e.reason}`);
-            reject(e)
-          }
-        });
+        let client = this.client;
+        if (!!client) {
+          client.unpublish({
+            onSuccess: () => {
+              Utils.log('client unpublish success.');
+              resolve();
+            },
+            onFailure: (e) => {
+              Utils.log(`client unpublish failed: ${e.code} ${e.reason}`);
+              wx.showToast({
+                title: `client unpublish failed: ${e.code} ${e.reason}`,
+                icon: 'none',
+                duration: 5000
+              });
+              reject(e);
+            }
+          });
+        } else {
+          reject({
+            code: 400,
+            reason: "TTTEngine is null. Are you init?"
+          });
+        }
       } else {
         reject({
           code: 400,
@@ -724,11 +826,11 @@ Page({
       // uid    -- userId
       // opType -- add or remove ? -- 此处为 add
       let opType = 1;
-      let userIds = [];
-      userIds.push({
+      let users = [];
+      users.push({
         uid: this.uid
       });
-      this.setSEI(userIds, 1);
+      this.setSEI(users, 1);
       // 
     }).catch(e => {
       Utils.log(`unpublish failed: ${e.code} ${e.reason}`);
@@ -807,11 +909,11 @@ Page({
     // 1w logs per task slice
     const sliceSize = 500;
     do {
-	  let content = logs.splice(0, sliceSize);
-	  
-	  // 
-	  console.log(`uploadLogs -- ${part} : ${content}`);
-	  // 
+      let content = logs.splice(0, sliceSize);
+
+      // 
+      console.log(`uploadLogs -- ${part} : ${content}`);
+      // 
       tasks.push(new LogUploaderTask(content, this.roomId, part++, ts, this.uid, this.cid));
     } while (logs.length > sliceSize)
     wx.showLoading({
@@ -880,7 +982,10 @@ Page({
 
     this.setData({
       debug: !this.data.debug
-    })
+    });
+  },
+
+  onUpload: function() {
     wx.showModal({
       title: '遇到使用问题?',
       content: '点击确定可以上传日志，帮助我们了解您在使用过程中的问题',
@@ -914,7 +1019,7 @@ Page({
       let client = {}
 
       // Create TTTMAEngine
-      Utils.log(`TTTMAEngine: ${TTTMAEngine}`);
+      Utils.log(`TTTMAEngine`);
 
       client = new TTTMAEngine({
         appId: APPID,
@@ -933,63 +1038,81 @@ Page({
 
       // store TTT Engine 
       this.client = client;
-      client.setRole({
-        role: this.role,
-        onSuccess: () => {},
-        onFailure: () => {}
-	  });
-	  // 
-      client.init({
-        appId: APPID,
-        userId: uid,
-        onSuccess: () => {
-          Utils.log(`client init success`);
+      if (!!client) {
+        client.setRole({
+          role: this.role,
+          onSuccess: () => {},
+          onFailure: () => {}
+        });
+        // 
+        client.init({
+          appId: APPID,
+          userId: uid,
+          onSuccess: () => {
+            Utils.log(`client init success`);
 
-          //subscribe stream events from TTT Engine
-          // 注：一定要确保 subscribeEvents 在 join 之前调用 -- 以免 join 成功后来自下层的事件不能无遗漏地上上层投递
-          this.subscribeEvents(client);
+            //subscribe stream events from TTT Engine
+            // 注：一定要确保 subscribeEvents 在 join 之前调用 -- 以免 join 成功后来自下层的事件不能无遗漏地上上层投递
+            this.subscribeEvents(client);
 
-          // pass key instead of undefined if certificate is enabled
-          client.join({
-            roomId: roomId,
-            userId: uid,
-            onSuccess: (data) => {
-              // store the conn state.
-              this.setData({
-                connState: 2
-              });
+            // pass key instead of undefined if certificate is enabled
+            client.join({
+              roomId: roomId,
+              userId: uid,
+              onSuccess: (data) => {
+                // store the conn state.
+                this.setData({
+                  connState: 2
+                });
 
-              const {
-                connectId,
-                pushUrl,
-                peers
+                const {
+                  connectId,
+                  pushUrl,
+                  peers
+                  // TODO : peers
+                } = data;
+
+                this.cid = connectId;
                 // TODO : peers
-              } = data;
 
-              this.cid = connectId;
-              // TODO : peers
+                //
+                for (const peer of peers) {
+                  Utils.log(`peer: connectId: ${peer.connectId} userId: ${peer.userId} role: ${peer.role}`);
+                }
 
-              //
-              for (const peer of peers) {
-                Utils.log(`peer: connectId: ${peer.connectId} userId: ${peer.userId} role: ${peer.role}`);
+                Utils.log(`client join room success. connectId: ${connectId} pushUrl: ${pushUrl} peers: ${peers}`);
+
+                resolve();
+              },
+              onFailure: (e) => {
+                Utils.log(`client join room failed: ${e.code} ${e.reason}`);
+                wx.showToast({
+                  title: `client join room failed: ${e.code} ${e.reason}`,
+                  icon: 'none',
+                  duration: 5000
+                });
+
+                reject(e);
               }
-
-              Utils.log(`client join room success. connectId: ${connectId} pushUrl: ${pushUrl} peers: ${peers}`);
-
-              resolve();
-            },
-            onFailure: (e) => {
-              Utils.log(`client join room failed: ${e.code} ${e.reason}`);
-              reject(e)
-            }
-          });
-        },
-        onFailure: (e) => {
-          Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
-          reject(e);
-		},
-		enIploc : false //
-      });
+            });
+          },
+          onFailure: (e) => {
+            Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
+            wx.showToast({
+              title: `client init failed: ${e.code} ${e.reason}`,
+              icon: 'none',
+              duration: 5000
+            });
+            reject(e);
+          },
+          enIploc: false //
+        });
+      } else {
+        reject({
+          code: 400,
+          reason: "TTTEngine is null. Are you init?"
+        });
+      }
     });
   },
 
@@ -1012,7 +1135,10 @@ Page({
   becomeBroadcaster: function() {
     return new Promise((resolve, reject) => {
       if (!this.client) {
-        return reject(new Error("no client available"))
+        return reject({
+          code: 400,
+          reason: "TTTEngine is null. Are you init?"
+        });
       }
       let client = this.client;
       this.role = 1;
@@ -1025,7 +1151,12 @@ Page({
         },
         onFailure: (e) => {
           Utils.log(`client publish failed: ${e.code} ${e.reason}`);
-          reject(e)
+          wx.showToast({
+            title: `client publish failed: ${e.code} ${e.reason}`,
+            icon: 'none',
+            duration: 5000
+          });
+          reject(e);
         }
       });
     })
@@ -1034,7 +1165,10 @@ Page({
   becomeAudience: function() {
     return new Promise((resolve, reject) => {
       if (!this.client) {
-        return reject(new Error("no client available"))
+        return reject({
+          code: 400,
+          reason: "TTTEngine is null. Are you init?"
+        });
       }
 
       let client = this.client
@@ -1051,7 +1185,7 @@ Page({
     })
   },
 
-  setSEI: function(userIds, type) {
+  setSEI: function(users, type) {
     Utils.log(`setSEI ${type}`);
     //
     let sei = {
@@ -1094,8 +1228,8 @@ Page({
     sei.pos.push(position);
 
     // for 列表中其他用户位置
-    for (let i = 0; i < userIds.length; i++) {
-      let item = userIds[i];
+    for (let i = 0; i < users.length; i++) {
+      let item = users[i];
       let position = {
         id: item.uid,
         h: 0.25,
@@ -1119,13 +1253,20 @@ Page({
     }
 
     let client = this.client;
-    client.setSEI({
-      userId: this.uid,
-      opType: type,
-      sei,
-      onSuccess: () => {},
-      onFailure: () => {}
-    });
+    if (!!client) {
+      client.setSEI({
+        userId: this.uid,
+        opType: type,
+        sei,
+        onSuccess: () => {},
+        onFailure: () => {}
+      });
+    } else {
+      reject({
+        code: 400,
+        reason: "TTTEngine is null. Are you init?"
+      });
+    }
   },
 
   /**
@@ -1179,9 +1320,14 @@ Page({
         let userIds = this.data.userIds || [];
         userIds.push(`${userData.userId}`);
         //
+        let index = 0;
+        let selectUserId = userIds[0];
         this.setData({
-          userIds: userIds
+          userIds: userIds,
+          selectIndex: index,
+          selectUserId: selectUserId
         });
+        //
       }
     });
 
@@ -1196,14 +1342,17 @@ Page({
           return `${item}` !== `${userId}`
         });
 
-        let selectUserId = this.data.selectUserId;
-
-        if (selectUserId === userId) {
-          selectUserId = (userIds.length > 0 ? userIds[0] : 0);
+        // 
+        let index = 0;
+        let selectUserId = 0;
+        if (userIds.length > 0) {
+          selectUserId = userIds[0];
+          index = 0;
         }
-        //
+
         this.setData({
           userIds: userIds,
+          selectIndex: index,
           selectUserId: selectUserId
         });
       }

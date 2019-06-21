@@ -19,11 +19,15 @@
 
   <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 180px)">
     <cover-image class="common_button" src="./Resources/pull.png" bindtap='onSubscribeClick'></cover-image>
-    <cover-view class='common_text'>拉流</cover-view>
+    <cover-view class='common_text'>拉 流</cover-view>
   </cover-view>
   <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 120px)">
     <cover-image class="common_button" src="./Resources/pull-dis.png" bindtap='onUnsubscribeClick'></cover-image>
     <cover-view class='common_text'>停拉流</cover-view>
+  </cover-view>
+  <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 60px)">
+    <cover-image class="common_button" src="./Resources/kickout.png" bindtap='onKickoutClick'></cover-image>
+    <cover-view class='common_text'>踢 出</cover-view>
   </cover-view>
 
   <cover-view style="width:65px; height: 115px; position: absolute; bottom: 55px; margin-left: calc(50% - 32px)" hidden='{{!showHDTips}}'>
@@ -71,6 +75,10 @@
       <cover-view class='bottom_box'>
         <cover-image class="bottom_button" src="./Resources/{{debug?'log-dis':'log'}}.png" bindtap='onDebugClick'></cover-image>
         <cover-view class='bottom_text'>{{debug?'关调试':'开调试'}}</cover-view>
+      </cover-view>
+      <cover-view class='bottom_box'>
+        <cover-image class="bottom_button" src="./Resources/upload.png" bindtap='onUpload'></cover-image>
+        <cover-view class='bottom_text'>传日志</cover-view>
       </cover-view>
     </cover-view>
   </view>

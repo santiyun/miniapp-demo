@@ -24,19 +24,19 @@ page {
   margin-bottom: 10rpx;
 }
 
-.content .userinfo-avatar {
+.content .logo-avatar {
   width: 128rpx;
   height: 128rpx;
   margin: 40rpx 20rpx 20rpx 20rpx;
   border-radius: 128rpx;
-  border: 2px solid white;
   box-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
 }
 
-.content .userinfo-nickname {
+.content .logo-name {
   color: #2f597a;
   font-size: 28rpx;
   text-align: center;
+  margin-bottom: 20rpx;
 }
 
 .content .form-section {

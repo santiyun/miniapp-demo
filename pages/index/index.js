@@ -28,22 +28,22 @@ Page({
       value: 3
     }],
     // 用户角色
-	userRole: 2,
-	// 
+    userRole: 2,
+    // 
     chkPushOn: [{
       name: 'PUSH_STREAM',
       display: '自动推流',
-      checked: true
+      checked: false
     }],
     chkAutoPull: [{
       name: 'AUTO_SUBSCRIBE',
       display: '自动拉流',
-      checked: true
+      checked: false
     }],
     // 入房间后，是否自动推流
-    isAutoPush: true,
+    isAutoPush: false,
     // 入房间后，是否自动拉流
-    isAutoPull: true
+    isAutoPull: false
   },
 
   /**
@@ -152,7 +152,7 @@ Page({
     }
 
     this.setData({
-		isAutoPush: isAutoPush
+      isAutoPush: isAutoPush
     });
 
     Utils.log(`checkboxChangeAutoPush : ${this.data.isAutoPush}`);
@@ -213,19 +213,19 @@ Page({
         this.lockJoin();
         //
         let role = this.data.userRole;
-		let autoPull = this.data.isAutoPull;
-		let autoPush = this.data.isAutoPush;
+        let autoPull = this.data.isAutoPull;
+        let autoPush = this.data.isAutoPush;
 
         wx.navigateTo({
           url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
         });
       } else {
-		wx.showToast({
-		  title: 'error: lockJoin',
-		  icon: 'none',
-		  duration: 2000
-		})
-	  }
+        wx.showToast({
+          title: 'error: lockJoin',
+          icon: 'none',
+          duration: 2000
+        })
+      }
     }
   },
 
