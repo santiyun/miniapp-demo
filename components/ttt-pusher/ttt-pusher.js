@@ -71,8 +71,10 @@ Component({
    * 组件的初始数据
    */
   data: {
-    pusherContext: null,
-    detached: false
+    pusherContext : null,
+	detached      : false,
+	mediaStateCB  : null,
+	userId        : 0
   },
 
   /**
@@ -100,7 +102,25 @@ Component({
     stop() {
       Utils.log(`stopping pusher`);
       this.data.pusherContext && this.data.pusherContext.stop();
-    },
+	},
+
+	/**
+	 * 
+	 * @param {*} opts.userId 
+	 * @param {*} opts.callback 
+	 */
+	setMediaStateCB(opts) {
+		const {
+			userId,
+			callback
+		} = opts;
+
+		// 
+		if (typeof callback == 'function') {
+			this.data.userId = userId;
+			this.data.mediaStateCB = callback;
+		}
+	},
 
     /**
      * switch camera direction
@@ -113,19 +133,31 @@ Component({
      * 推流状态更新回调
      */
     stateChange: function (e) {
-      // TODO : Utils.log(`live-pusher code: ${e.detail.code} - ${e.detail.message}`)
+	  // TODO : Utils.log(`live-pusher code: ${e.detail.code} - ${e.detail.message}`)
+	  
+	  // 送到上层处理
+	  if (!!this.data.mediaStateCB) {
+		this.data.mediaStateCB({
+			code    : e.detail.code,
+			type    : 'pusher',
+			userId  : this.data.userId,
+			message : e.detail.message
+		});
+	  }
+
+	  // 
       if (e.detail.code === -1307) {
-        //re-push
+        // re-push
         Utils.log('live-pusher stopped', "error");
         this.setData({
           status: "error"
-        })
-        //emit event
+        });
+        // emit event
         this.triggerEvent('pushfailed');
       }
 
       if (e.detail.code === 1008) {
-        //started
+        // started
         Utils.log(`live-pusher started`);
         if(this.data.status === "loading") {
           this.setData({
@@ -137,7 +169,18 @@ Component({
 	
     netStatus: function(e) {
       // TODO : 用于 流量记录 -- 对账
-      // Utils.log(`pusher network: ${JSON.stringify(e.detail)}`);
+	  // Utils.log(`pusher network: ${JSON.stringify(e.detail)}`);
+
+	  // 送到上层处理
+	  if (!!this.data.mediaStateCB) {
+		// Utils.log(`pusher network: ${JSON.stringify(e.detail)}`);
+		this.data.mediaStateCB({
+			code    : 100,
+			type    : 'pusher',
+			userId  : this.data.userId,
+			message : `${JSON.stringify(e.detail)}`
+		});
+	  }
     }
   },
 
@@ -148,9 +191,11 @@ Component({
     Utils.log("pusher ready");
     this.data.pusherContext || (this.data.pusherContext = wx.createLivePusherContext(this));
   },
+  
   moved: function () {
     Utils.log("pusher moved");
-   },
+  },
+
   detached: function () {
     Utils.log("pusher detached");
     // auto stop pusher when detached

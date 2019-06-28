@@ -1,6 +1,8 @@
 const app = getApp()
 const Utils = require('../../utils/util.js')
 
+const { version } = require('../../lib/miniapp-sdk-3t')
+
 // pages/index/index.js
 Page({
 
@@ -50,8 +52,12 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function(options) {
-    this.roomId = "9876000";
-    this.userId = "9876333";
+    this.roomId = "";
+	this.userId = "";
+	
+	// 
+	Utils.log(`index page onLoad: ${JSON.stringify(version)}`);
+	this.unlockJoin();
 
     //
     this.lock = false;
@@ -61,7 +67,12 @@ Page({
         hasUserInfo: true,
         userInfo: userInfo
       });
-    }
+	}
+	
+	// 
+	this.setData({
+		masdkVersion : `${JSON.stringify(version)}`
+	});
   },
 
   /**
@@ -207,7 +218,7 @@ Page({
         title: '请提供相应参数',
         icon: 'none',
         duration: 2000
-      })
+      });
     } else {
       if (this.checkJoinLock()) {
         this.lockJoin();
@@ -224,7 +235,7 @@ Page({
           title: 'error: lockJoin',
           icon: 'none',
           duration: 2000
-        })
+        });
       }
     }
   },

@@ -76,10 +76,12 @@
         <cover-image class="bottom_button" src="./Resources/{{debug?'log-dis':'log'}}.png" bindtap='onDebugClick'></cover-image>
         <cover-view class='bottom_text'>{{debug?'关调试':'开调试'}}</cover-view>
       </cover-view>
+	  <!--
       <cover-view class='bottom_box'>
         <cover-image class="bottom_button" src="./Resources/upload.png" bindtap='onUpload'></cover-image>
         <cover-view class='bottom_text'>传日志</cover-view>
       </cover-view>
+	  -->
     </cover-view>
   </view>
 </view>

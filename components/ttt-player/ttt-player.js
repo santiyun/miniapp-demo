@@ -62,8 +62,10 @@ Component({
    * 组件的初始数据
    */
   data: {
-    playContext: null,
-    detached: false
+    playContext  : null,
+    detached     : false,
+	mediaStateCB : null,
+	userId       : 0
   },
 
   /**
@@ -98,6 +100,24 @@ Component({
       this.data.playContext && this.data.playContext.stop();
     },
 
+	/**
+	 * 
+	 * @param {*} opts.userId 
+	 * @param {*} opts.callback 
+	 */
+	setMediaStateCB(opts) {
+		const {
+			userId,
+			callback
+		} = opts;
+
+		// 
+		if (typeof callback == 'function') {
+			this.data.userId = userId;
+			this.data.mediaStateCB = callback;
+		}
+	},
+
     /**
      * rotate video by rotation
      */
@@ -113,7 +133,19 @@ Component({
      * 播放器状态更新回调
      */
     stateChange: function (e) {
-      // TODO : Utils.log(`live-player id: ${e.target.id}, code: ${e.detail.code}`)
+	  // TODO : Utils.log(`live-player id: ${e.target.id}, code: ${e.detail.code}`)
+	  
+	// 送到上层处理
+	if (!!this.data.mediaStateCB) {
+		this.data.mediaStateCB({
+			code    : e.detail.code,
+			type    : 'player',
+			userId  : this.data.userId,
+			message : '{}'
+		});
+	}
+
+	  // 
       let cid = parseInt(e.target.id.split("-")[1]);
       if (e.detail.code === 2004) {
         Utils.log(`live-player ${cid} started playing`);
@@ -132,9 +164,20 @@ Component({
 	
     netStatus: function(e) {
       // TODO : 用于 流量记录 -- 对账
-      // Utils.log(`player network: ${JSON.stringify(e.detail)}`);
+	  // Utils.log(`player network: ${JSON.stringify(e.detail)}`);
+	  
+	  // 送到上层处理
+	  if (!!this.data.mediaStateCB) {
+		this.data.mediaStateCB({
+			code    : 100,
+			type    : 'player',
+			userId  : this.data.userId,
+			message : `${JSON.stringify(e.detail)}`
+		});
+	  }
     }
   },
+
   /**
    * 组件生命周期
    */
@@ -146,9 +189,11 @@ Component({
       this.start();
     }
   },
+
   moved: function () {
     Utils.log(`player ${this.data.cid} moved`);
   },
+
   detached: function () {
     Utils.log(`player ${this.data.cid} detached`);
     // auto stop player when detached

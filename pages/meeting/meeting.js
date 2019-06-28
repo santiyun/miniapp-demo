@@ -117,7 +117,7 @@ Page({
 
     // page setup
     wx.setNavigationBarTitle({
-      title: `${this.roomId}(${this.uid})`
+      title: `${this.roomId}(${this.uid})-(role:${this.role})`
     });
     wx.setKeepScreenOn({
       keepScreenOn: true
@@ -132,7 +132,7 @@ Page({
         title: '提示',
         content: '您正处于测试环境',
         showCancel: false
-      })
+      });
     }
   },
 
@@ -162,15 +162,21 @@ Page({
       .catch(e => {
         Utils.log(`init TTT Engine failed: ${e.code} ${e.reason}`);
         wx.showToast({
-          title: `客户端初始化失败`,
+          title: `登录失败：${e.code} ${e.reason}`,
           icon: 'none',
           duration: 5000
         });
-        //
+		//
+		/*
         // 跳回首页
         wx.navigateTo({
           url: `../index/index`
-        });
+		});
+		*/
+		wx.reLaunch({
+			url: '../index/index'
+		  })
+	
       });
   },
 
@@ -238,7 +244,12 @@ Page({
       }
     }
     // client.destroy 内部将自动调用 leave
-    this.client && this.client.destroy();
+	this.client && this.client.destroy();
+	
+	// 
+	wx.reLaunch({
+		url: '../index/index'
+	  })
   },
 
   /**
@@ -469,8 +480,12 @@ Page({
       success: (res) => {
         if (res.confirm) {
           if (!this.leaving) {
-            this.leaving = true;
-            this.navigateBack();
+			this.leaving = true;
+			
+			 wx.reLaunch({
+				url: '../index/index'
+			  });
+		
           }
         } else if (res.cancel) {
           console.log('用户点击取消')
@@ -515,7 +530,7 @@ Page({
    */
   onUnsubscribeClick: function() {
     if (this.data.selectUserId !== 0) {
-      this.unsubscribe(this.data.selectUserId);
+      this.unsubscribe(this.data.selectUserId, true);
     } else {
       wx.showToast({
         title: `请选择 userId`,
@@ -541,11 +556,6 @@ Page({
             },
             onFailure: (e) => {
               Utils.log(`client subscribe failed: ${e.code} ${e.reason}`);
-              wx.showToast({
-                title: `client subscribe failed: ${e.code} ${e.reason}`,
-                icon: 'none',
-                duration: 5000
-              });
               reject(e);
             }
           });
@@ -558,7 +568,7 @@ Page({
       } else {
         reject({
           code: 400,
-          reason: `connState : ${this.data.connState}. Not ready.`
+          reason: `connState : ${this.data.connState}. 尚未完成加入房间`
         });
       }
     }).then(data => {
@@ -601,41 +611,48 @@ Page({
     });
   },
 
-  unsubscribe: function(userId) {
+  unsubscribe: function(userId, isTip) {
     Utils.log(`unsubscribe ${userId} media`);
     new Promise((resolve) => {
+		// 
+		this.removeMedia(userId);
+		// 
+
       let client = this.client;
       if (!!client) {
         client.unsubscribe({
           userId,
-          onSuccess: () => {
-            Utils.log(`unsubscribe ${userId} ok`);
-            // 
-            this.removeMedia(userId);
-            resolve();
-          },
-          onFailure: (e) => {
-            wx.showToast({
-              title: `client unsubscribe failed: ${e.code} ${e.reason}`,
-              icon: 'none',
-              duration: 5000
-            });
-            reject(e);
-          }
-        });
-      } else {
-        reject({
-          code: 400,
-          reason: "TTTEngine is null. Are you init?"
+          onSuccess: () => {},
+          onFailure: (e) => {}
         });
       }
+        resolve();
     }).catch(e => {
-      Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
-      wx.showToast({
-        title: `停拉流失败: ${e.code} ${e.reason}`,
-        icon: 'none',
-        duration: 5000
-      });
+	  Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
+    });
+  },
+
+  unsubscribeAll: function(userId, isTip) {
+    Utils.log(`unsubscribeAll ${userId} media`);
+    new Promise((resolve) => {
+		// 
+		for (let i = 0; i < media.length; i++) {
+			let item = media[i];
+
+			let client = this.client;
+			if (!!client) {
+				client.unsubscribe({
+					userId: item.uid,
+					onSuccess: () => {},
+					onFailure: (e) => {}
+				});
+			}
+		}
+
+		removeAllMedia('pusher');
+	  resolve();
+    }).catch(e => {
+	  Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
     });
   },
 
@@ -651,18 +668,17 @@ Page({
       return;
     }
     wx.showModal({
-      title: '遇到使用问题?',
-      content: '点击确定可以上传日志，帮助我们了解您在使用过程中的问题',
-      success: function(res) {
+      title: 'kickout?',
+      content: `点击确定将踢出用户 ${this.data.selectUserId}，是否确定？`,
+      success: (res) => {
         if (res.confirm) {
           // 
           let client = this.client;
           if (!!client) {
             client.kickout({
               userId: this.data.selectUserId,
-              onSuccess: (data) => {
+              onSuccess: () => {
                 Utils.log('client kickout success.');
-                resolve(data.url);
               },
               onFailure: (e) => {
                 Utils.log(`client kickout failed: ${e.code} ${e.reason}`);
@@ -671,13 +687,7 @@ Page({
                   icon: 'none',
                   duration: 5000
                 });
-                reject(e);
               }
-            });
-          } else {
-            reject({
-              code: 400,
-              reason: "TTTEngine is null. Are you init?"
             });
           }
         }
@@ -711,11 +721,6 @@ Page({
               },
               onFailure: (e) => {
                 Utils.log(`client publish failed: ${e.code} ${e.reason}`);
-                wx.showToast({
-                  title: `client publish failed: ${e.code} ${e.reason}`,
-                  icon: 'none',
-                  duration: 5000
-                });
                 reject(e);
               }
             });
@@ -734,7 +739,7 @@ Page({
       } else {
         reject({
           code: 400,
-          reason: `connState : ${this.data.connState}. Not ready.`
+          reason: `connState : ${this.data.connState}. 尚未完成加入房间`
         });
       }
     }).then(url => {
@@ -744,9 +749,7 @@ Page({
 
       if (this.canPublsh()) {
         // first time init, add pusher media to view
-        this.addMedia('pusher', this.uid, this.cid, url, {
-          key: ts
-        });
+        this.addMedia('pusher', this.uid, this.cid, url, { key: ts });
 
         //
         this.setData({
@@ -782,45 +785,27 @@ Page({
   unpublish: function() {
     Utils.log(`client unpublish`);
     new Promise((resolve, reject) => {
-      if (this.data.connState === 2) {
-        let client = this.client;
-        if (!!client) {
-          client.unpublish({
-            onSuccess: () => {
-              Utils.log('client unpublish success.');
-              resolve();
-            },
-            onFailure: (e) => {
-              Utils.log(`client unpublish failed: ${e.code} ${e.reason}`);
-              wx.showToast({
-                title: `client unpublish failed: ${e.code} ${e.reason}`,
-                icon: 'none',
-                duration: 5000
-              });
-              reject(e);
-            }
-          });
-        } else {
-          reject({
-            code: 400,
-            reason: "TTTEngine is null. Are you init?"
-          });
-        }
-      } else {
-        reject({
-          code: 400,
-          reason: `connState : ${this.data.connState}. Not ready.`
-        });
-      }
-    }).then(() => {
-      Utils.log(`unpublish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid}`);
-
+	  // 
       this.removeMedia(this.uid);
-
       //
       this.setData({
         pushing: false
       });
+
+	  // 
+      if (this.data.connState === 2) {
+        let client = this.client;
+        if (!!client) {
+          client.unpublish({
+            onSuccess: () => {},
+            onFailure: (e) => {}
+          });
+        }
+	  }
+	  resolve();
+	  // 
+    }).then(() => {
+      Utils.log(`unpublish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid}`);
 
       // 
       // uid    -- userId
@@ -834,11 +819,6 @@ Page({
       // 
     }).catch(e => {
       Utils.log(`unpublish failed: ${e.code} ${e.reason}`);
-      wx.showToast({
-        title: `停流失败: ${e.code} ${e.reason}`,
-        icon: 'none',
-        duration: 5000
-      });
     });
   },
 
@@ -854,14 +834,21 @@ Page({
 
     Utils.log('pusher failed completely', "error");
     wx.showModal({
-      title: '发生错误',
+      title: '提示信息',
       content: '推流发生错误，请重新进入房间重试',
       showCancel: false,
       success: () => {
-        this.navigateBack();
+		  /*
+		wx.navigateTo({
+			url: `../test/test`
+		  });
+		  */
+		 wx.reLaunch({
+			url: '../index/index'
+		  });
+  
       }
-    })
-
+    });
   },
 
   /**
@@ -882,7 +869,7 @@ Page({
     Utils.log(`switching camera`);
     // get pusher component via id
     const tttPusher = this.getPusherComponent();
-    tttPusher && tttPusher.switchCamera();
+	tttPusher && tttPusher.switchCamera();
   },
 
   /**
@@ -975,26 +962,61 @@ Page({
   },
 
   /**
-   * 上传日志回调
+   * 是否开启 debug
    */
   onDebugClick: function() {
     let page = this;
 
     this.setData({
       debug: !this.data.debug
-    });
+	});
+
+	// 1. 将 netstatus 日志采集回调 植入 tttPusher 中
+	const tttPusher = this.getPusherComponent();
+	tttPusher && tttPusher.setMediaStateCB({
+		userId   : this.uid,
+		callback : (opts) => {
+			const { code, type, userId, message } = opts;
+
+			// 
+			let client = this.client;
+			if (!!client) {
+				client.mediaState({ code, type, userId, message });
+			}
+		}
+	});
+
+	// 2. 将 netstatus 日志采集回调 植入 tttPlayer 中
+	let media = this.data.media || [];
+	for (let i = 0; i < media.length; i++) {
+		let item = media[i];
+
+		const player = this.getPlayerComponent(item.cid);
+		player && player.setMediaStateCB({
+			userId   : this.uid,
+			callback : (opts) => {
+				const { code, type, userId, message } = opts;
+	
+				// 
+				let client = this.client;
+				if (!!client) {
+					client.mediaState({ code, type, userId, message });
+				}
+			}
+		});
+	}  
   },
 
   onUpload: function() {
+	let page = this;
+
     wx.showModal({
       title: '遇到使用问题?',
       content: '点击确定可以上传日志，帮助我们了解您在使用过程中的问题',
       success: function(res) {
         if (res.confirm) {
-          console.log('用户点击确定')
           page.uploadLogs();
         } else if (res.cancel) {
-          console.log('用户点击取消')
         }
       }
     });
@@ -1034,7 +1056,7 @@ Page({
           // callback to expose sdk logs
           Utils.log(text);
         }
-      })
+      });
 
       // store TTT Engine 
       this.client = client;
@@ -1044,7 +1066,7 @@ Page({
           onSuccess: () => {},
           onFailure: () => {}
         });
-        // 
+        // 调用 TTTEngine 初始化
         client.init({
           appId: APPID,
           userId: uid,
@@ -1085,27 +1107,19 @@ Page({
                 resolve();
               },
               onFailure: (e) => {
-                Utils.log(`client join room failed: ${e.code} ${e.reason}`);
-                wx.showToast({
-                  title: `client join room failed: ${e.code} ${e.reason}`,
-                  icon: 'none',
-                  duration: 5000
-                });
-
+				Utils.log(`client join room failed: ${e.code} ${e.reason}`);
+				
                 reject(e);
               }
             });
           },
           onFailure: (e) => {
-            Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
-            wx.showToast({
-              title: `client init failed: ${e.code} ${e.reason}`,
-              icon: 'none',
-              duration: 5000
-            });
+			Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
+			
             reject(e);
           },
-          enIploc: false //
+		  disIploc: true, //
+		  auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
         });
       } else {
         reject({
@@ -1180,7 +1194,7 @@ Page({
         resolve();
       }, e => {
         Utils.log(`client unpublish failed: ${e.code} ${e.reason}`);
-        reject(e)
+        reject(e);
       });
     })
   },
@@ -1303,12 +1317,27 @@ Page({
       event: "session-status",
       callback: (e) => {
         Utils.log(`event: session-status -- uid: ${e.uid} cid: ${e.cid} status: ${e.status}`);
-        // 
-        wx.showToast({
-          title: `session-status：${e.status}`,
-          icon: 'none',
-          duration: 5000
-        });
+		// 
+		// 
+		if (e.code == 3000) {
+			// 重连，则会释放所有 发布流，订阅流
+			//
+			if (this.data.pushing) {
+				this.unpublish();
+			}
+			//
+			wx.showToast({
+				title: '断网重连，将关闭本地所有流',
+				icon: 'none',
+				duration: 5000
+				});
+		} else {
+			wx.showToast({
+			title: `session-status：${e.status}`,
+			icon: 'none',
+			duration: 5000
+			});
+		}
       }
     });
 
@@ -1334,7 +1363,12 @@ Page({
     client.on({
       event: "user-offline",
       callback: (userId) => {
-        Utils.log(`event: user-online -- uid: ${userId}`);
+		Utils.log(`event: user-online -- uid: ${userId}`);
+		
+		// 
+		this.unsubscribe(userId, false);
+		// 首先移除该用户流（如果已存在）
+        this.removeMedia(userId);
 
         // 
         let userIds = this.data.userIds || [];
@@ -1367,9 +1401,8 @@ Page({
         let userId = e.uid;
         const ts = new Date().getTime();
         Utils.log(`event: stream-added -- uid: ${userId} this.autoPull: ${this.autoPull}`);
-        /**
-         * subscribe to get corresponding url
-         */
+		
+		// 如果勾选了 自动拉流 ，则自动拉取该用户流
         if (this.autoPull) {
           this.subscribe(userId);
         }
@@ -1410,10 +1443,24 @@ Page({
         // destroy 
         client.destroy();
 
-        // 跳回首页
+		// 跳回首页
+		/*
         wx.navigateTo({
           url: `../index/index`
-        });
+		});
+		*/
+		
+		wx.showToast({
+			title: '被踢出，将退回首页',
+			icon: 'none',
+			duration: 5000
+			});
+
+        setTimeout(() => {
+			wx.reLaunch({
+				url: '../index/index'
+			  });
+			}, 1000);
       }
     })
 
@@ -1433,10 +1480,24 @@ Page({
         // destroy 
         client.destroy();
 
-        // 跳回首页
+		// 跳回首页
+		/*
         wx.navigateTo({
           url: `../index/index`
-        });
+		});
+		*/
+		
+		wx.showToast({
+			title: '彻底断开，将退回首页',
+			icon: 'none',
+			duration: 5000
+			});
+
+		setTimeout(() => {
+			wx.reLaunch({
+				url: '../index/index'
+			  });
+			}, 1000);
       }
     })
 
