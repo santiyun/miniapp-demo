@@ -285,10 +285,10 @@ Page({
   /**
    * check if current media list has specified cid & mediaType component
    */
-  hasMedia(mediaType, cid) {
+  hasMedia(mediaType, uid) {
     let media = this.data.media || [];
     return media.filter(item => {
-      return item.type === mediaType && `${item.cid}` === `${cid}`
+      return item.type === mediaType && `${item.uid}` === `${uid}`
     }).length > 0
   },
 
@@ -832,23 +832,29 @@ Page({
       pushing: false
     });
 
-    Utils.log('pusher failed completely', "error");
+	Utils.log('ttt-pusher failed!!!. pusher failed completely', "error");
+
+	this.unpublish();
+
+	wx.showToast({
+		title: 'ttt-pusher failed!!!. pusher failed completely',
+		icon: 'none',
+		duration: 5000
+	  });
+
+	/*
     wx.showModal({
       title: '提示信息',
       content: '推流发生错误，请重新进入房间重试',
       showCancel: false,
       success: () => {
-		  /*
-		wx.navigateTo({
-			url: `../test/test`
-		  });
-		  */
 		 wx.reLaunch({
 			url: '../index/index'
 		  });
   
       }
-    });
+	});
+	*/
   },
 
   /**
@@ -1117,9 +1123,9 @@ Page({
 			Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
 			
             reject(e);
-          },
-		  disIploc: true, //
-		  auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
+          }// ,
+		  // disIploc: true, //
+		  // auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
         });
       } else {
         reject({
@@ -1363,18 +1369,23 @@ Page({
     client.on({
       event: "user-offline",
       callback: (userId) => {
-		Utils.log(`event: user-online -- uid: ${userId}`);
+		Utils.log(`event: user-offline -- uid: ${userId}`);
 		
 		// 
-		this.unsubscribe(userId, false);
-		// 首先移除该用户流（如果已存在）
-        this.removeMedia(userId);
+		if (this.hasMedia('player', userId)) {
+			// 
+			// this.unsubscribe(userId, false);
+			// 首先移除该用户流（如果已存在）
+			this.removeMedia(userId);
+		}
 
         // 
         let userIds = this.data.userIds || [];
         userIds = userIds.filter(item => {
-          return `${item}` !== `${userId}`
+          return `${item}` != `${userId}`
         });
+
+		Utils.log(`event: user-offline -- userIds: ${userIds}`);
 
         // 
         let index = 0;
@@ -1417,8 +1428,13 @@ Page({
       event: "stream-removed",
       callback: (e) => {
         let uid = e.uid;
-        Utils.log(`event: stream-removed -- uid: ${uid}`);
-        this.removeMedia(uid);
+		Utils.log(`event: stream-removed -- uid: ${uid}`);
+		//
+		if (hasMedia('player', uid)) {
+			this.unsubscribe(uid, false);
+			// 首先移除该用户流（如果已存在）
+			this.removeMedia(uid);
+		}
       }
     });
 
