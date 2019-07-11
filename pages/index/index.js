@@ -1,7 +1,9 @@
 const app = getApp()
 const Utils = require('../../utils/util.js')
 
-const { version } = require('../../lib/miniapp-sdk-3t')
+const {
+  version
+} = require('../../lib/miniapp-sdk-3t')
 
 // pages/index/index.js
 Page({
@@ -53,11 +55,11 @@ Page({
    */
   onLoad: function(options) {
     this.roomId = "";
-	this.userId = "";
-	
-	// 
-	Utils.log(`index page onLoad: ${JSON.stringify(version)}`);
-	this.unlockJoin();
+    this.userId = "";
+
+    // 
+    Utils.log(`index page onLoad: ${JSON.stringify(version)}`);
+    this.unlockJoin();
 
     //
     this.lock = false;
@@ -67,12 +69,12 @@ Page({
         hasUserInfo: true,
         userInfo: userInfo
       });
-	}
-	
-	// 
-	this.setData({
-		masdkVersion : `${JSON.stringify(version)}`
-	});
+    }
+
+    // 
+    this.setData({
+      masdkVersion: `${JSON.stringify(version)}`
+    });
   },
 
   /**

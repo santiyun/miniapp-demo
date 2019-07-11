@@ -2,10 +2,7 @@
 const app = getApp()
 const Utils = require('../../utils/util.js')
 
-import {
-  TTTMAEngine,
-  TTTLog
-} from '../../lib/miniapp-sdk-3t';
+import { TTTMAEngine, TTTLog } from '../../lib/miniapp-sdk-3t';
 
 // 
 // 最大用户数量
@@ -98,7 +95,7 @@ Page({
     // 是否自动拉流
     this.autoPull = (options.autoPull === 'true') ? true : false;
     // 是否自动推流
-    this.autoPush = (options.autoPush == 'true') ? true : false;
+    this.autoPush = (options.autoPush === 'true') ? true : false;
 
     Utils.log(`this.autoPull : ${this.autoPull} this.autoPush : ${this.autoPush}`);
     //
@@ -119,9 +116,7 @@ Page({
     wx.setNavigationBarTitle({
       title: `${this.roomId}(${this.uid})-(role:${this.role})`
     });
-    wx.setKeepScreenOn({
-      keepScreenOn: true
-    });
+    wx.setKeepScreenOn({ keepScreenOn: true });
 
     /**
      * please remove this part in your production environment
@@ -144,10 +139,12 @@ Page({
     let uid = this.uid;
     Utils.log(`onReady`);
 
+	/*
     // schedule log auto update, remove this if this is not needed
     this.logTimer = setInterval(() => {
       this.uploadLogs();
-    }, 60 * 60 * 1000);
+	}, 60 * 60 * 1000);
+	*/
 
     // init layouter control
     this.initLayouter();
@@ -155,8 +152,12 @@ Page({
     // init TTT Engine
     this.initEngine(uid, roomId)
       .then(() => {
+		let userIds = this.data.userIds || [];
+		Utils.log(`init TTT Engine ok. userIds: ${JSON.stringify(userIds)}`);
+		this.setSEI(userIds, 1);
+
         if (this.autoPush) {
-          this.publish();
+          this.publish(false);
         }
       })
       .catch(e => {
@@ -166,17 +167,14 @@ Page({
           icon: 'none',
           duration: 5000
         });
-		//
-		/*
-        // 跳回首页
-        wx.navigateTo({
-          url: `../index/index`
-		});
-		*/
-		wx.reLaunch({
-			url: '../index/index'
-		  })
-	
+        //
+					
+		setTimeout(() => {
+			wx.reLaunch({
+				url: '../index/index'
+			});
+		//	this.navigateIndex();
+		}, 3000);
       });
   },
 
@@ -244,12 +242,13 @@ Page({
       }
     }
     // client.destroy 内部将自动调用 leave
-	this.client && this.client.destroy();
-	
+    this.client && this.client.destroy();
+
 	// 
-	wx.reLaunch({
-		url: '../index/index'
-	  })
+    wx.reLaunch({
+      url: '../index/index'
+	});
+	// this.navigateIndex();
   },
 
   /**
@@ -289,7 +288,7 @@ Page({
     let media = this.data.media || [];
     return media.filter(item => {
       return item.type === mediaType && `${item.uid}` === `${uid}`
-    }).length > 0
+    }).length > 0;
   },
 
   /**
@@ -382,16 +381,16 @@ Page({
    * the media component will be fully refreshed if you try to update key
    * property.
    */
-  updateMedia: function(cid, options) {
-    Utils.log(`update media ${cid} ${JSON.stringify(options)}`);
+  updateMedia: function(uid, options) {
+    Utils.log(`update media ${uid} ${JSON.stringify(options)}`);
     let media = this.data.media || [];
     let changed = false;
     for (let i = 0; i < media.length; i++) {
       let item = media[i];
-      if (`${item.cid}` === `${cid}`) {
+      if (`${item.uid}` === `${uid}`) {
         media[i] = Object.assign(item, options);
         changed = true;
-        Utils.log(`after update media ${cid} ${JSON.stringify(item)}`)
+        Utils.log(`after update media ${uid} ${JSON.stringify(item)}`)
         break;
       }
     }
@@ -421,9 +420,7 @@ Page({
       }
 
       if (media.length > max_user) {
-        wx.showToast({
-          title: '由于房内人数超过7人，部分视频未被加载显示',
-        });
+        wx.showToast({ title: '由于房内人数超过7人，部分视频未被加载显示' });
       }
 
       Utils.log(`updating media: ${JSON.stringify(media)}`);
@@ -482,10 +479,19 @@ Page({
           if (!this.leaving) {
 			this.leaving = true;
 			
-			 wx.reLaunch({
-				url: '../index/index'
-			  });
-		
+			let client = this.client;
+			if (!!client) {
+				client.destroy({
+					onSuccess : () => {},
+					onFailure : () => {}
+				});
+			}
+
+            wx.reLaunch({
+              url: '../index/index'
+			});
+
+			// this.navigateIndex();
           }
         } else if (res.cancel) {
           console.log('用户点击取消')
@@ -513,9 +519,15 @@ Page({
     }
   },
 
+  navigateIndex: function() {
+	wx.redirectTo({
+        url: '../index/index',
+      });
+  },
+
   onSubscribeClick: function() {
     if (this.data.selectUserId !== 0) {
-      this.subscribe(this.data.selectUserId);
+      this.subscribe(this.data.selectUserId, false);
     } else {
       wx.showToast({
         title: `请选择 userId`,
@@ -540,7 +552,7 @@ Page({
     }
   },
 
-  subscribe: function(userId) {
+  subscribe: function(userId, isUpdate) {
     // 
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
@@ -549,7 +561,8 @@ Page({
         let client = this.client;
         if (!!client) {
           client.subscribe({
-            userId,
+			userId,
+			isUpdate,
             onSuccess: (data) => {
               Utils.log(`client subscribe success. url:${data.url}`);
               resolve(data);
@@ -574,31 +587,32 @@ Page({
     }).then(data => {
       Utils.log(`subscribe url: ${data.url}`);
 
-      let ts = new Date().getTime();
-
-      let media = this.data.media || [];
-      let matchItem = null;
-      for (let i = 0; i < media.length; i++) {
-        let item = this.data.media[i];
-        if (`${item.cid}` === `${data.connectId}`) {
-          //if existing, record this as matchItem and break
-          matchItem = item;
-          break;
-        }
-      }
-
-      if (!matchItem) {
+	  if (this.hasMedia('player', data.userId)) {
+		// if existing, update property
+        // change key property to refresh live-player
+        this.updateMedia(data.userId, { url: data.url });
+      } else {  
         //if not existing, add new media
-        this.addMedia('player', data.userId, data.connectId, data.url, {
+		let ts = new Date().getTime();
+
+		this.addMedia('player', data.userId, data.connectId, `${data.url}`, {
           key: ts,
           rotation: data.rotation
-        })
-      } else {
-        // if existing, update property
-        // change key property to refresh live-player
-        this.updateMedia(matchItem.cid, {
-          url: data.url
-        });
+		});
+		
+		let client = this.client;
+		if (!!client) {
+			const player = this.getPlayerComponent(data.connectId);
+			player && player.setMediaStatCB({
+				userId: data.userId,
+				callback: (opts) => {
+					// 
+					const { code, type, userId, message } = opts;
+					client.mediaStat({ code, type, userId, message });
+				}
+			});
+		}
+		// 
       }
       //
     }).catch(e => {
@@ -614,9 +628,9 @@ Page({
   unsubscribe: function(userId, isTip) {
     Utils.log(`unsubscribe ${userId} media`);
     new Promise((resolve) => {
-		// 
-		this.removeMedia(userId);
-		// 
+      // 
+      this.removeMedia(userId);
+      // 
 
       let client = this.client;
       if (!!client) {
@@ -626,74 +640,62 @@ Page({
           onFailure: (e) => {}
         });
       }
-        resolve();
+      resolve();
     }).catch(e => {
-	  Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
+      Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
     });
   },
 
-  unsubscribeAll: function(userId, isTip) {
-    Utils.log(`unsubscribeAll ${userId} media`);
+  resubscribeAll: function() {
+    Utils.log(`resubscribeAll media`);
     new Promise((resolve) => {
-		// 
-		for (let i = 0; i < media.length; i++) {
-			let item = media[i];
+	  // 
+	  let media = this.data.media || [];
+	  // 
+      for (let i = 0; i < media.length; i++) {
+		let item = media[i];
+		
+		if (`${item.type}` !== 'player')
+			continue;
 
-			let client = this.client;
-			if (!!client) {
-				client.unsubscribe({
-					userId: item.uid,
-					onSuccess: () => {},
-					onFailure: (e) => {}
-				});
-			}
-		}
+		//
+		this.subscribe(item.uid, true);
+      }
 
-		removeAllMedia('pusher');
-	  resolve();
+      resolve();
     }).catch(e => {
-	  Utils.log(`unsubscribe ${userId} failed: ${e.code} ${e.reason}`);
+      Utils.log(`resubscribeAll failed: ${e.code} ${e.reason}`);
     });
   },
 
-  // 踢出指定用户
-  onKickoutClick: function() {
-    // 
-    if (!this.data.selectUserId) {
-      wx.showToast({
-        title: `请选择 userId`,
-        icon: 'none',
-        duration: 5000
-      });
-      return;
-    }
-    wx.showModal({
-      title: 'kickout?',
-      content: `点击确定将踢出用户 ${this.data.selectUserId}，是否确定？`,
-      success: (res) => {
-        if (res.confirm) {
-          // 
-          let client = this.client;
-          if (!!client) {
-            client.kickout({
-              userId: this.data.selectUserId,
-              onSuccess: () => {
-                Utils.log('client kickout success.');
-              },
-              onFailure: (e) => {
-                Utils.log(`client kickout failed: ${e.code} ${e.reason}`);
-                wx.showToast({
-                  title: `client kickout failed: ${e.code} ${e.reason}`,
-                  icon: 'none',
-                  duration: 5000
-                });
-              }
-            });
-          }
+  unsubscribeAll: function() {
+    Utils.log(`unsubscribeAll media`);
+    new Promise((resolve) => {
+	  // 
+	  let media = this.data.media || [];
+	  // 
+      for (let i = 0; i < media.length; i++) {
+		let item = media[i];
+
+		if (`${item.type}` !== 'player')
+			continue;
+
+        let client = this.client;
+        if (!!client) {
+          client.unsubscribe({
+            userId: item.uid,
+            onSuccess: () => {},
+            onFailure: (e) => {}
+          });
         }
       }
+
+      this.removeAllMedia('player');
+
+	  resolve();
+    }).catch(e => {
+      Utils.log(`unsubscribeAll failed: ${e.code} ${e.reason}`);
     });
-    //
   },
 
   /**
@@ -701,13 +703,15 @@ Page({
    */
   onPublishClick: function() {
     if (!this.data.pushing)
-      this.publish();
+      this.publish(false);
     else
       this.unpublish();
   },
 
-  publish: function() {
-    Utils.log(`client publish`);
+  publish: function(isUpdate) {
+	let curTS = new Date().getTime();
+	Utils.log(`****** client publish curTS: ${curTS}`);
+	
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
         // and get my stream publish url
@@ -715,6 +719,7 @@ Page({
           let client = this.client;
           if (!!client) {
             client.publish({
+				isUpdate,
               onSuccess: (data) => {
                 Utils.log(`client publish success. url:${data.url}`);
                 resolve(data.url);
@@ -748,23 +753,32 @@ Page({
       let ts = new Date().getTime();
 
       if (this.canPublsh()) {
-        // first time init, add pusher media to view
-        this.addMedia('pusher', this.uid, this.cid, url, { key: ts });
+		if (this.hasMedia('pusher', this.uid)) {
+			// if existing, update property
+			// change key property to refresh live-player
+			this.updateMedia(this.uid, { url });
+		} else {
+			// first time init, add pusher media to view
+			this.addMedia('pusher', this.uid, this.cid, url, { key: ts });
+			// 
+			
+			let client = this.client;
+			if (!!client) {
+				// 1. 将 netstatus 日志采集回调 植入 tttPusher 中
+				const tttPusher = this.getPusherComponent();
+				tttPusher && tttPusher.setMediaStatCB({
+					userId: this.uid,
+					callback: (opts) => {
+					const { code, type, userId, message } = opts;
+				
+					client.mediaStat({ code, type, userId, message });
+					}
+				});
+			}
+		}
 
         //
-        this.setData({
-          pushing: true
-        });
-
-        // 
-        // uid    -- userId
-        // opType -- add or remove ? -- 此处为 add
-        let opType = 1;
-        let users = [];
-        users.push({
-          uid: this.uid
-        });
-        this.setSEI(users, 1);
+        this.setData({ pushing : true });
         // 
       } else {
         reject({
@@ -773,7 +787,10 @@ Page({
         });
       }
     }).catch(e => {
-      Utils.log(`publish failed: ${e.code} ${e.reason}`);
+	  Utils.log(`publish failed: ${e.code} ${e.reason}`);
+	  // 
+	  this.removeMedia(this.uid);
+	  // 
       wx.showToast({
         title: `推流失败: ${e.code} ${e.reason}`,
         icon: 'none',
@@ -785,14 +802,12 @@ Page({
   unpublish: function() {
     Utils.log(`client unpublish`);
     new Promise((resolve, reject) => {
-	  // 
+      // 
       this.removeMedia(this.uid);
       //
-      this.setData({
-        pushing: false
-      });
+      this.setData({ pushing : false });
 
-	  // 
+      // 
       if (this.data.connState === 2) {
         let client = this.client;
         if (!!client) {
@@ -801,22 +816,11 @@ Page({
             onFailure: (e) => {}
           });
         }
-	  }
-	  resolve();
-	  // 
+      }
+      resolve();
+      // 
     }).then(() => {
       Utils.log(`unpublish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid}`);
-
-      // 
-      // uid    -- userId
-      // opType -- add or remove ? -- 此处为 add
-      let opType = 1;
-      let users = [];
-      users.push({
-        uid: this.uid
-      });
-      this.setSEI(users, 1);
-      // 
     }).catch(e => {
       Utils.log(`unpublish failed: ${e.code} ${e.reason}`);
     });
@@ -826,44 +830,72 @@ Page({
    * 推流状态更新回调
    * 向 CDN 推流失败时，回调
    */
-  onPusherFailed: function() {
+  onPusherFailed: function(e) {
+    Utils.log(`ttt-pusher failed!!!. pusher failed: ${JSON.stringify(e.detail.errMsg)}`);
     //
-    this.setData({
-      pushing: false
-    });
+    this.setData({ pushing : false });
 
-	Utils.log('ttt-pusher failed!!!. pusher failed completely', "error");
-
-	this.unpublish();
-
-	wx.showToast({
-		title: 'ttt-pusher failed!!!. pusher failed completely',
-		icon: 'none',
-		duration: 5000
-	  });
+    this.unpublish();
 
 	/*
-    wx.showModal({
-      title: '提示信息',
-      content: '推流发生错误，请重新进入房间重试',
-      showCancel: false,
-      success: () => {
-		 wx.reLaunch({
-			url: '../index/index'
-		  });
-  
-      }
-	});
+    // 重试
+    setTimeout(() => {
+      this.publish();
+	}, 1000);
 	*/
+
+    wx.showToast({
+      title: `小程序报错. pusher failed: ${JSON.stringify(e.detail.errMsg)}`,
+      icon: 'none',
+      duration: 5000
+    });
+  },
+
+  // 踢出指定用户
+  onKickoutClick: function() {
+    // 
+    if (!this.data.selectUserId) {
+      wx.showToast({
+        title: `请选择 userId`,
+        icon: 'none',
+        duration: 5000
+      });
+      return;
+    }
+    wx.showModal({
+      title: 'kickout?',
+      content: `点击确定将踢出用户 ${this.data.selectUserId}，是否确定？`,
+      success: (res) => {
+        if (res.confirm) {
+          // 
+          let client = this.client;
+		  if (!client)
+			return;
+		  client.kickout({
+			userId: this.data.selectUserId,
+			onSuccess: () => {
+				Utils.log('client kickout success.');
+			},
+			onFailure: (e) => {
+				Utils.log(`client kickout failed: ${e.code} ${e.reason}`);
+				wx.showToast({
+					title: `client kickout failed: ${e.code} ${e.reason}`,
+					icon: 'none',
+					duration: 5000
+				});
+			}
+		  });
+        }
+      }
+    });
+    //
   },
 
   /**
    * 静音回调
    */
   onMuteClick: function() {
-    this.setData({
-      muted: !this.data.muted
-    });
+    this.setData({ muted : !this.data.muted });
 
     Utils.log(`muted : ${this.data.muted}`);
   },
@@ -875,7 +907,7 @@ Page({
     Utils.log(`switching camera`);
     // get pusher component via id
     const tttPusher = this.getPusherComponent();
-	tttPusher && tttPusher.switchCamera();
+    tttPusher && tttPusher.switchCamera();
   },
 
   /**
@@ -883,9 +915,7 @@ Page({
    */
   onMakeupClick: function() {
     let beauty = this.data.beauty == 5 ? 0 : 5;
-    this.setData({
-      beauty: beauty
-    })
+    this.setData({ beauty : beauty });
   },
 
   /**
@@ -908,32 +938,27 @@ Page({
       console.log(`uploadLogs -- ${part} : ${content}`);
       // 
       tasks.push(new LogUploaderTask(content, this.roomId, part++, ts, this.uid, this.cid));
-    } while (logs.length > sliceSize)
-    wx.showLoading({
-      title: '0%',
-      mask: true
-    })
+	} while (logs.length > sliceSize)
+	
+    wx.showLoading({ title: '0%', mask: true });
+	
     LogUploader.off("progress").on("progress", e => {
       let remain = e.remain;
       let total = e.total;
       Utils.log(`log upload progress ${total - remain}/${total}`);
       if (remain === 0) {
         wx.hideLoading();
-        wx.showToast({
-          title: `上传成功`,
-        });
+        wx.showToast({ title: `上传成功`, });
       } else {
         wx.showLoading({
           mask: true,
           title: `${((total - remain) / total * 100).toFixed(2)}%`,
-        })
+        });
       }
     });
     LogUploader.on("error"), e => {
       wx.hideLoading();
-      wx.showToast({
-        title: `上传失败: ${e}`,
-      });
+      wx.showToast({ title: `上传失败: ${e}` });
     }
     LogUploader.scheduleTasks(tasks);
   },
@@ -947,74 +972,53 @@ Page({
         this.removeMedia(this.uid);
       }).catch(e => {
         Utils.log(`switch to audience failed ${e.stack}`);
-      })
+      });
     } else {
       let ts = new Date().getTime();
       this.becomeBroadcaster().then(url => {
-        this.addMedia('pusher', this.uid, this.cid, url, {
-          key: ts
-        });
+        this.addMedia('pusher', this.uid, this.cid, url, { key: ts });
       }).catch(e => {
         Utils.log(`switch to broadcaster failed ${e.stack}`);
-      })
+      });
     }
   },
 
   onSwitchMode: function() {
     var showTips = !this.data.showHDTips;
-    this.setData({
-      showHDTips: showTips
-    })
+    this.setData({ showHDTips : showTips });
   },
 
   /**
    * 是否开启 debug
    */
   onDebugClick: function() {
-    let page = this;
-
-    this.setData({
-      debug: !this.data.debug
-	});
-
-	// 1. 将 netstatus 日志采集回调 植入 tttPusher 中
-	const tttPusher = this.getPusherComponent();
-	tttPusher && tttPusher.setMediaStateCB({
-		userId   : this.uid,
-		callback : (opts) => {
-			const { code, type, userId, message } = opts;
-
-			// 
-			let client = this.client;
-			if (!!client) {
-				client.mediaState({ code, type, userId, message });
-			}
-		}
-	});
-
-	// 2. 将 netstatus 日志采集回调 植入 tttPlayer 中
-	let media = this.data.media || [];
-	for (let i = 0; i < media.length; i++) {
-		let item = media[i];
-
-		const player = this.getPlayerComponent(item.cid);
-		player && player.setMediaStateCB({
-			userId   : this.uid,
-			callback : (opts) => {
-				const { code, type, userId, message } = opts;
+	this.setData({ debug: !this.data.debug });
 	
-				// 
-				let client = this.client;
-				if (!!client) {
-					client.mediaState({ code, type, userId, message });
-				}
-			}
-		});
-	}  
+	// 
+	this.injectMediaStat();
   },
 
   onUpload: function() {
-	let page = this;
+	wx.getStorageInfo({
+		success (res) {
+		  console.log(res.keys);
+		  console.log(res.currentSize);
+		  console.log(res.limitSize);
+
+		  for (let i = 0; i < res.keys.length; i++) {
+			let item = res.keys[i];
+			wx.getStorage({
+				key: item,
+				success (res) {
+				  console.log(`--- --- --- ${res.data}`);
+				}
+			  });
+			}
+		}
+	  });
+	  //
+	/*
+    let page = this;
 
     wx.showModal({
       title: '遇到使用问题?',
@@ -1022,10 +1026,10 @@ Page({
       success: function(res) {
         if (res.confirm) {
           page.uploadLogs();
-        } else if (res.cancel) {
-        }
+        } else if (res.cancel) {}
       }
-    });
+	});
+	*/
   },
 
   /**
@@ -1037,6 +1041,41 @@ Page({
     // 64 is the height of bottom toolbar
     // 120 is the height of input area 
     this.layouter = new Layouter(systemInfo.windowWidth, systemInfo.windowHeight - 64 - 120);
+  },
+
+  /**
+   * 向 ttt-pusher，ttt-player 注入 媒体传输统计 的回调函数
+   */
+  injectMediaStat: function() {
+	let client = this.client;
+	if (!client) {
+		return;
+	}
+
+    // 1. 将 netstatus 日志采集回调 植入 tttPusher 中
+    const tttPusher = this.getPusherComponent();
+    tttPusher && tttPusher.setMediaStatCB({
+      userId: this.uid,
+      callback: (opts) => {
+        const { code, type, userId, message } = opts;
+        client.mediaStat({ code, type, userId, message });
+      }
+    });
+
+    // 2. 将 netstatus 日志采集回调 植入 tttPlayer 中
+    let media = this.data.media || [];
+    for (let i = 0; i < media.length; i++) {
+      let item = media[i];
+
+      const player = this.getPlayerComponent(item.cid);
+      player && player.setMediaStatCB({
+        userId: this.uid,
+        callback: (opts) => {
+          const { code, type, userId, message } = opts;
+          client.mediaStat({ code, type, userId, message });
+        }
+      });
+    }
   },
 
   /**
@@ -1067,6 +1106,7 @@ Page({
       // store TTT Engine 
       this.client = client;
       if (!!client) {
+		  // 
         client.setRole({
           role: this.role,
           onSuccess: () => {},
@@ -1089,16 +1129,9 @@ Page({
               userId: uid,
               onSuccess: (data) => {
                 // store the conn state.
-                this.setData({
-                  connState: 2
-                });
+                this.setData({ connState: 2 });
 
-                const {
-                  connectId,
-                  pushUrl,
-                  peers
-                  // TODO : peers
-                } = data;
+                const { connectId, pushUrl, peers } = data;
 
                 this.cid = connectId;
                 // TODO : peers
@@ -1113,19 +1146,19 @@ Page({
                 resolve();
               },
               onFailure: (e) => {
-				Utils.log(`client join room failed: ${e.code} ${e.reason}`);
-				
+                Utils.log(`client join room failed: ${e.code} ${e.reason}`);
+
                 reject(e);
               }
             });
           },
           onFailure: (e) => {
-			Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
-			
+            Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
+
             reject(e);
           }// ,
-		  // disIploc: true, //
-		  // auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
+          // disIploc: true, //
+          // auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
         });
       } else {
         reject({
@@ -1165,6 +1198,7 @@ Page({
       client.setRole(this.role);
       Utils.log(`client switching role to ${this.role}`);
       client.publish({
+		isUpdate : false,
         onSuccess: (url) => {
           Utils.log(`client publish success`);
           resolve(url);
@@ -1247,30 +1281,31 @@ Page({
 
     sei.pos.push(position);
 
+	Utils.log(`setSEI users: ${JSON.stringify(users)}`);
     // for 列表中其他用户位置
     for (let i = 0; i < users.length; i++) {
       let item = users[i];
-      let position = {
-        id: item.uid,
+
+	  let position = {
+        id: item,
         h: 0.25,
         w: 0.33,
         x: ((sei.pos.length - 1) % 3) * 0.33,
         y: parseInt((sei.pos.length - 1) / 3) * 0.25 + 0.5,
         z: 1
-      };
+	  };
+	  
+	  if (sei.pos.filter(it => {
+		return `${it.id}` === `${item}`
+	  }).length > 0)
+	    continue;
 
-      let isHave = false;
-      sei.pos.forEach(e => {
-        if (e.id === item.uid) {
-          isHave = true;
-        }
-      })
+		Utils.log(`setSEI for user: ${item} position: ${JSON.stringify(position)}`);
 
-      if (!isHave) {
-        sei.pos.push(position);
-        i++;
-      }
+      sei.pos.push(position);
     }
+
+	Utils.log(`setSEI sei.pos: ${JSON.stringify(sei.pos)} sei: ${JSON.stringify(sei)}`);
 
     let client = this.client;
     if (!!client) {
@@ -1311,7 +1346,7 @@ Page({
     client.on({
       event: "video-rotation",
       callback: (e) => {
-        Utils.log(`event: video-rotated: ${e.rotation} ${e.cid}`)
+        Utils.log(`event: video-rotated: ${e.rotation} ${e.cid}`);
         setTimeout(() => {
           const player = this.getPlayerComponent(e.cid);
           player && player.rotate(e.rotation);
@@ -1323,27 +1358,31 @@ Page({
       event: "session-status",
       callback: (e) => {
         Utils.log(`event: session-status -- uid: ${e.uid} cid: ${e.cid} status: ${e.status}`);
+        // 
 		// 
-		// 
-		if (e.code == 3000) {
-			// 重连，则会释放所有 发布流，订阅流
-			//
-			if (this.data.pushing) {
-				this.unpublish();
-			}
-			//
-			wx.showToast({
-				title: '断网重连，将关闭本地所有流',
-				icon: 'none',
-				duration: 5000
-				});
-		} else {
-			wx.showToast({
-			title: `session-status：${e.status}`,
-			icon: 'none',
-			duration: 5000
+		if (e.code == 310 || e.code == 210) {
+			// 此处仅仅是清空 -- 因为 sdk 内部随后会将所有 users ，通过 user-online 通知上来
+			let userIds = [];
+
+			this.setData({
+				userIds: userIds
 			});
 		}
+
+		if (e.code == 310) {
+			// 重连且登录成功
+			// 尝试将之前的 推流/拉流 自动恢复
+			if (this.data.pushing) {
+				this.publish(true);
+			}
+			// 
+			this.resubscribeAll();
+        }
+		wx.showToast({
+            title: `session-status：${e.status}`,
+            icon: 'none',
+            duration: 5000
+          });
       }
     });
 
@@ -1362,30 +1401,36 @@ Page({
           selectIndex: index,
           selectUserId: selectUserId
         });
-        //
+		//
+		this.setSEI(userIds, 1);
+
+        Utils.log(`event: user-online -- userIds: ${JSON.stringify(userIds)}`);
       }
     });
 
     client.on({
       event: "user-offline",
       callback: (userId) => {
-		Utils.log(`event: user-offline -- uid: ${userId}`);
-		
-		// 
-		if (this.hasMedia('player', userId)) {
-			// 
-			// this.unsubscribe(userId, false);
-			// 首先移除该用户流（如果已存在）
-			this.removeMedia(userId);
-		}
+        Utils.log(`event: user-offline -- uid: ${userId}`);
+
+        // 
+        if (this.hasMedia('player', userId)) {
+          // 
+          // this.unsubscribe(userId, false);
+          // 首先移除该用户流（如果已存在）
+          this.removeMedia(userId);
+        }
 
         // 
         let userIds = this.data.userIds || [];
         userIds = userIds.filter(item => {
           return `${item}` != `${userId}`
-        });
+		});
+		
+		// 
+		this.setSEI(userIds, 1);
 
-		Utils.log(`event: user-offline -- userIds: ${userIds}`);
+        Utils.log(`event: user-offline -- userIds: ${JSON.stringify(userIds)}`);
 
         // 
         let index = 0;
@@ -1412,10 +1457,10 @@ Page({
         let userId = e.uid;
         const ts = new Date().getTime();
         Utils.log(`event: stream-added -- uid: ${userId} this.autoPull: ${this.autoPull}`);
-		
-		// 如果勾选了 自动拉流 ，则自动拉取该用户流
+
+        // 如果勾选了 自动拉流 ，则自动拉取该用户流
         if (this.autoPull) {
-          this.subscribe(userId);
+          this.subscribe(userId, false);
         }
         // 
       }
@@ -1428,13 +1473,13 @@ Page({
       event: "stream-removed",
       callback: (e) => {
         let uid = e.uid;
-		Utils.log(`event: stream-removed -- uid: ${uid}`);
-		//
-		if (hasMedia('player', uid)) {
-			this.unsubscribe(uid, false);
-			// 首先移除该用户流（如果已存在）
-			this.removeMedia(uid);
-		}
+        Utils.log(`event: stream-removed -- uid: ${uid}`);
+        //
+        if (this.hasMedia('player', uid)) {
+          this.unsubscribe(uid, false);
+          // 首先移除该用户流（如果已存在）
+          this.removeMedia(uid);
+        }
       }
     });
 
@@ -1452,31 +1497,24 @@ Page({
         Utils.log(`event: kickout -- uid: ${uid}, reason: ${reason}`);
 
         // update the conn state.
-        this.setData({
-          connState: 0
-        });
+        this.setData({ connState: 0 });
 
         // destroy 
         client.destroy();
 
-		// 跳回首页
-		/*
-        wx.navigateTo({
-          url: `../index/index`
-		});
-		*/
-		
-		wx.showToast({
-			title: '被踢出，将退回首页',
-			icon: 'none',
-			duration: 5000
-			});
+        wx.showToast({
+          title: '被踢出，将退回首页',
+          icon: 'none',
+          duration: 5000
+        });
 
         setTimeout(() => {
-			wx.reLaunch({
-				url: '../index/index'
-			  });
-			}, 1000);
+          wx.reLaunch({
+            url: '../index/index'
+		  });
+
+		  // this.navigateIndex();
+        }, 5000);
       }
     })
 
@@ -1489,31 +1527,24 @@ Page({
         Utils.log('event: disconnected');
 
         // update the conn state.
-        this.setData({
-          connState: 0
-        });
+        this.setData({ connState: 0 });
 
         // destroy 
         client.destroy();
 
-		// 跳回首页
-		/*
-        wx.navigateTo({
-          url: `../index/index`
-		});
-		*/
-		
-		wx.showToast({
-			title: '彻底断开，将退回首页',
-			icon: 'none',
-			duration: 5000
-			});
+        wx.showToast({
+          title: '彻底断开，将退回首页',
+          icon: 'none',
+          duration: 5000
+        });
 
-		setTimeout(() => {
-			wx.reLaunch({
-				url: '../index/index'
-			  });
-			}, 1000);
+        setTimeout(() => {
+          wx.reLaunch({
+            url: '../index/index'
+		  });
+
+		  // this.navigateIndex();
+        }, 5000);
       }
     })
 
@@ -1534,32 +1565,6 @@ Page({
 
         // TODO : reconnect for some code
         // ...
-      }
-    });
-
-    /**
-     * there are cases when server require you to update
-     * player url, when receiving such event, update url into
-     * corresponding live-player, REMEMBER to update key property
-     * so that live-player is properly refreshed
-     * NOTE you can ignore such event if it's for pusher or happens before
-     * stream-added
-     */
-    client.on({
-      event: 'update-url',
-      callback: (e) => {
-        Utils.log(`event: update-url -- ${JSON.stringify(e)}`);
-        let cid = e.cid;
-        let url = e.url;
-        let ts = new Date().getTime();
-        if (`${cid}` === `${this.cid}`) {
-          // if it's not pusher url, update
-          Utils.log(`ignore update-url`);
-        } else {
-          this.updateMedia(cid, {
-            url: url
-          });
-        }
       }
     });
   }

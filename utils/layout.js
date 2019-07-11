@@ -38,6 +38,23 @@ class Layouter {
         return [{
           x: 0,
           y: 0,
+          width: videoContainerWidth / 2,
+          height: videoContainerHeight / 2
+        }, {
+          x: videoContainerWidth / 2,
+          y: 0,
+          width: videoContainerWidth / 2,
+          height: videoContainerHeight / 2
+        }, {
+          x: 0,
+          y: videoContainerHeight / 2,
+          width: videoContainerWidth / 2,
+          height: videoContainerHeight / 2
+        }];
+		  /*
+        return [{
+          x: 0,
+          y: 0,
           width: videoContainerWidth,
           height: videoContainerHeight - videoContainerWidth / 2
         }, {
@@ -50,7 +67,8 @@ class Layouter {
           y: videoContainerHeight - videoContainerWidth / 2,
           width: videoContainerWidth / 2,
           height: videoContainerWidth / 2
-        }];
+		}];
+		*/
       case 4:
         return [{
           x: 0,
