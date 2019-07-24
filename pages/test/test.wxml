@@ -28,7 +28,7 @@
   </view>
   <view id="video-container" class="video-container n{{totalUser}}">
     <block wx:for="{{media}}" wx:key="key">
-      <ttt-pusher wx:if="{{item.type === 'pusher' && !item.holding}}" id="rtc-pusher" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}" muted="{{muted}}" beauty="{{beauty}}" bindpushfailed="onPusherFailed">
+      <ttt-pusher wx:if="{{item.type === 'pusher' && !item.holding}}" id="rtc-pusher" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}" muted="{{muted}}" beauty="{{beauty}}" bindpushfailed="onPushFailed">
       </ttt-pusher>
       <ttt-player wx:if="{{item.type === 'player' && !item.holding}}" id="rtc-player" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}" cid="{{item.cid}}">
       </ttt-player>

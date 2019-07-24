@@ -56,6 +56,14 @@ Component({
         Utils.log(`ttt-pusher status changed from ${oldVal} to ${newVal}`);
       }
     },
+    name: {
+      type: String,
+      value: ""
+    },
+    cid: {
+      type: String,
+      value: ""
+    },
     url: {
       type: String,
       value: "",

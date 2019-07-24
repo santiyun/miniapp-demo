@@ -152,8 +152,16 @@ Component({
         }
       } else if (e.detail.code === -2301) {
         Utils.log(`live-player ${cid} stopped`, "error");
-        this.setData({ status: "error" });
-      }
+		this.setData({ status: "error" });
+		// emit event
+		this.triggerEvent('pullfailed', {
+			userId  : this.data.userId,
+			errCode : e.detail.code,
+			errMsg  : `${e.detail.code}`
+		});	
+	  }
+	  
+	  // 
     },
 
     netStatus: function(e) {

@@ -6,7 +6,7 @@ import { TTTMAEngine, TTTLog } from '../../lib/miniapp-sdk-3t';
 
 // 
 // 最大用户数量
-const max_user = 7;
+const MAX_USER = 7;
 const Layouter = require('../../utils/layout.js');
 const APPID = require('../../utils/config.js').APPID;
 const TEST_SERVER = require('../../utils/config.js').TEST_SERVER;
@@ -44,7 +44,10 @@ Page({
      * }
      */
     media: [],
-    userIds: [], // 当前房间内的用户列表
+	userIds: [], // 当前房间内的用户列表
+	userTotal: 0,
+	logClues: '', // 日志跟踪用
+	loginStatus: '', // 当前登录状态
     /**
      * muted
      */
@@ -410,7 +413,7 @@ Page({
   refreshMedia: function(media) {
     return new Promise((resolve) => {
       for (let i = 0; i < media.length; i++) {
-        if (i < max_user) {
+        if (i < MAX_USER) {
           //show
           media[i].holding = false;
         } else {
@@ -419,7 +422,7 @@ Page({
         }
       }
 
-      if (media.length > max_user) {
+      if (media.length > MAX_USER) {
         wx.showToast({ title: '由于房内人数超过7人，部分视频未被加载显示' });
       }
 
@@ -553,6 +556,17 @@ Page({
   },
 
   subscribe: function(userId, isUpdate) {
+	// 最多 7 路
+	if (this.data.media.length >= MAX_USER) {
+		wx.showToast({
+			title: `当前已到最大支持路数： ${MAX_USER}`,
+			icon: 'none',
+			duration: 5000
+		  });
+
+		return;
+	}
+	
     // 
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
@@ -618,7 +632,7 @@ Page({
     }).catch(e => {
       Utils.log(`subscribe failed: ${e.code} ${e.reason}`);
       wx.showToast({
-        title: `拉流失败: ${e.code} ${e.reason}`,
+        title: `拉流失败: ${JSON.stringify(e)}`,
         icon: 'none',
         duration: 5000
       });
@@ -709,6 +723,17 @@ Page({
   },
 
   publish: function(isUpdate) {
+	  	// 最多 7 路
+	if (this.data.media.length >= MAX_USER) {
+		wx.showToast({
+			title: `当前已到最大支持路数： ${MAX_USER}`,
+			icon: 'none',
+			duration: 5000
+		  });
+
+		return;
+	}
+
 	let curTS = new Date().getTime();
 	Utils.log(`****** client publish curTS: ${curTS}`);
 	
@@ -827,10 +852,33 @@ Page({
   },
 
   /**
+   * 
+   * @param {*} e 
+   */
+  onPullFailed: function(e) {
+    Utils.log(`ttt-player failed!!!. player failed: ${JSON.stringify(e.detail.errMsg)}`);
+	//
+
+    this.unsubscribe(e.detail.userId, false);
+
+	let msg = JSON.stringify(e.detail.errMsg);
+	if (e.detail.errCode === -2301)
+	{
+		msg = '拉流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启拉流'
+	}
+
+    wx.showToast({
+      title: `小程序报错. player failed: ${msg}`,
+      icon: 'none',
+      duration: 5000
+    });
+  },
+
+  /**
    * 推流状态更新回调
    * 向 CDN 推流失败时，回调
    */
-  onPusherFailed: function(e) {
+  onPushFailed: function(e) {
     Utils.log(`ttt-pusher failed!!!. pusher failed: ${JSON.stringify(e.detail.errMsg)}`);
     //
     this.setData({ pushing : false });
@@ -844,8 +892,14 @@ Page({
 	}, 1000);
 	*/
 
+	let msg = JSON.stringify(e.detail.errMsg);
+	if (e.detail.errCode === -1307)
+	{
+		msg = '推流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启推流'
+	}
+
     wx.showToast({
-      title: `小程序报错. pusher failed: ${JSON.stringify(e.detail.errMsg)}`,
+      title: `小程序报错. pusher failed: ${msg}`,
       icon: 'none',
       duration: 5000
     });
@@ -996,6 +1050,9 @@ Page({
 	
 	// 
 	this.injectMediaStat();
+
+	// 
+	this.onUpload();
   },
 
   onUpload: function() {
@@ -1016,6 +1073,7 @@ Page({
 			}
 		}
 	  });
+	  wx.clearStorage();
 	  //
 	/*
     let page = this;
@@ -1116,7 +1174,11 @@ Page({
         client.init({
           appId: APPID,
           userId: uid,
-          onSuccess: () => {
+          onSuccess: (e) => {
+			// 
+			const { logClues } = e;
+			this.setData({ logClues : logClues });
+
             Utils.log(`client init success`);
 
             //subscribe stream events from TTT Engine
@@ -1358,14 +1420,37 @@ Page({
       event: "session-status",
       callback: (e) => {
         Utils.log(`event: session-status -- uid: ${e.uid} cid: ${e.cid} status: ${e.status}`);
-        // 
+		// 
+		let loginStatus = '';
+		if (e.code == 3000) {
+			loginStatus = '正在重连'
+		} else if (e.code == 200) {
+			loginStatus = '已连接'
+		} else if (e.code == 210) {
+			loginStatus = '登录在线'
+		} else if (e.code == 300) {
+			loginStatus = '已连接'
+		} else if (e.code == 310) {
+			loginStatus = '登录在线'
+		} else if (e.code == 1000) {
+			loginStatus = '最终失败'
+		} else
+		{
+			loginStatus = '未知'
+		}
+
+		this.setData({
+			loginStatus
+		});
+
 		// 
 		if (e.code == 310 || e.code == 210) {
 			// 此处仅仅是清空 -- 因为 sdk 内部随后会将所有 users ，通过 user-online 通知上来
 			let userIds = [];
 
 			this.setData({
-				userIds: userIds
+				userIds     : userIds,
+				userTotal   : 0
 			});
 		}
 
@@ -1393,13 +1478,16 @@ Page({
         // 
         let userIds = this.data.userIds || [];
         userIds.push(`${userData.userId}`);
-        //
+		//
+		let userTotal = userIds.length;
+
         let index = 0;
         let selectUserId = userIds[0];
         this.setData({
-          userIds: userIds,
-          selectIndex: index,
-          selectUserId: selectUserId
+		  userIds      : userIds,
+		  userTotal,
+          selectIndex  : index,
+          selectUserId : selectUserId
         });
 		//
 		this.setSEI(userIds, 1);
@@ -1434,16 +1522,19 @@ Page({
 
         // 
         let index = 0;
-        let selectUserId = 0;
-        if (userIds.length > 0) {
+		let selectUserId = 0;
+
+		let userTotal = userIds.length;
+        if (userTotal > 0) {
           selectUserId = userIds[0];
           index = 0;
-        }
-
+		}
+		
         this.setData({
-          userIds: userIds,
-          selectIndex: index,
-          selectUserId: selectUserId
+		  userIds      : userIds,
+		  userTotal,
+          selectIndex  : index,
+          selectUserId : selectUserId
         });
       }
     });

@@ -3,7 +3,7 @@ const app = getApp()
 const Utils = require('../../utils/util.js')
 
 // 最大用户数量
-const max_user = 7;
+const MAX_USER = 7;
 const Layouter = require('../../utils/layout.js');
 
 Page({
@@ -243,7 +243,7 @@ Page({
   refreshMedia: function(media) {
     return new Promise((resolve) => {
       for (let i = 0; i < media.length; i++) {
-        if (i < max_user) {
+        if (i < MAX_USER) {
           //show
           media[i].holding = false;
         } else {
@@ -252,7 +252,7 @@ Page({
         }
       }
 
-      if (media.length > max_user) {
+      if (media.length > MAX_USER) {
         wx.showToast({
           title: '由于房内人数超过7人，部分视频未被加载显示',
         });

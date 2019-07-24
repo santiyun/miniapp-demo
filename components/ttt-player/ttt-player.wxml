@@ -6,6 +6,6 @@
     <cover-image style="width: 128px; height: 103px" src="../../images/{{status}}.png"></cover-image>
   </cover-view>
   <cover-view class="" style="position: absolute; top: 10px; left: 10px; font-size: 28rpx; right: 10px">
-    {{name}}({{cid}})
+    player-{{name}}--({{cid}})
   </cover-view>
 </view>
