@@ -64,7 +64,7 @@ Page({
     /**
      * debug
      */
-    debug: false,
+    debug: true, // 默认开启 debug
     /**
      * 登录状态
      * 0 -- idle
@@ -96,9 +96,9 @@ Page({
     // default role to broadcaster
     this.role = parseInt(options.role) || 1;
     // 是否自动拉流
-    this.autoPull = (options.autoPull === 'true') ? true : false;
+    this.autoPull = false; // (options.autoPull === 'true') ? true : false;
     // 是否自动推流
-    this.autoPush = (options.autoPush === 'true') ? true : false;
+    this.autoPush = false; // (options.autoPush === 'true') ? true : false;
 
     Utils.log(`this.autoPull : ${this.autoPull} this.autoPush : ${this.autoPush}`);
     //
@@ -131,7 +131,19 @@ Page({
         content: '您正处于测试环境',
         showCancel: false
       });
-    }
+	}
+	
+    // init layouter control
+    this.initLayouter();
+
+	// 自动加载 pusher
+	if (this.canPublsh()) {
+		// first time init, add pusher media to view		
+		let ts = new Date().getTime();
+
+		this.addMedia('pusher', this.uid, /*this.cid*/'', '', { key: ts });
+		// 
+	}
   },
 
   /**
@@ -149,15 +161,16 @@ Page({
 	}, 60 * 60 * 1000);
 	*/
 
-    // init layouter control
-    this.initLayouter();
-
     // init TTT Engine
     this.initEngine(uid, roomId)
       .then(() => {
 		let userIds = this.data.userIds || [];
 		Utils.log(`init TTT Engine ok. userIds: ${JSON.stringify(userIds)}`);
-		this.setSEI(userIds, 1);
+
+		// 如果是 主播， 才执行 setSEI
+		if (this.role == 1) {
+			this.setSEI(userIds, 1);
+		}
 
         if (this.autoPush) {
           this.publish(false);
@@ -226,14 +239,16 @@ Page({
     if (pages.length >= 1) {
       //unlock join
       let indexPage = pages[0];
-      indexPage.unlockJoin();
     }
 
     // unpublish sdk and leave roomId
     if (this.canPublsh()) {
       try {
         if (!!this.client) {
-          this.client.unpublish();
+          this.client.unpublish({
+            onSuccess: () => {},
+            onFailure: (e) => {}
+          });
         } else {
           reject({
             code: 400,
@@ -436,7 +451,7 @@ Page({
   },
 
   onModeClick: function(event) {
-    var mode = "SD";
+    var mode = "RTC";
     switch (event.target.dataset.mode) {
       case "SD":
         mode = "SD";
@@ -574,6 +589,12 @@ Page({
         // 
         let client = this.client;
         if (!!client) {
+			wx.showToast({
+				title: '已发出请求，请稍候',
+				icon: 'none',
+				duration: 5000
+			});
+
           client.subscribe({
 			userId,
 			isUpdate,
@@ -723,13 +744,23 @@ Page({
   },
 
   publish: function(isUpdate) {
-	  	// 最多 7 路
+	if (this.data.pushing) {
+		wx.showToast({
+			title: '当前已推流',
+			icon: 'none',
+			duration: 3000
+		});
+	
+		return;
+	}
+
+	// 最多 7 路
 	if (this.data.media.length >= MAX_USER) {
 		wx.showToast({
 			title: `当前已到最大支持路数： ${MAX_USER}`,
 			icon: 'none',
 			duration: 5000
-		  });
+		});
 
 		return;
 	}
@@ -743,6 +774,12 @@ Page({
         if (this.canPublsh()) {
           let client = this.client;
           if (!!client) {
+			wx.showToast({
+				title: '已发出请求，请稍候',
+				icon: 'none',
+				duration: 5000
+			});
+		
             client.publish({
 				isUpdate,
               onSuccess: (data) => {
@@ -775,22 +812,17 @@ Page({
     }).then(url => {
       Utils.log(`publish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid} url: ${url}`);
 
-      let ts = new Date().getTime();
-
-      if (this.canPublsh()) {
 		if (this.hasMedia('pusher', this.uid)) {
 			// if existing, update property
 			// change key property to refresh live-player
 			this.updateMedia(this.uid, { url });
-		} else {
-			// first time init, add pusher media to view
-			this.addMedia('pusher', this.uid, this.cid, url, { key: ts });
-			// 
-			
+		}
+		// 
+		const tttPusher = this.getPusherComponent();
+		if (!!tttPusher) {
 			let client = this.client;
 			if (!!client) {
 				// 1. 将 netstatus 日志采集回调 植入 tttPusher 中
-				const tttPusher = this.getPusherComponent();
 				tttPusher && tttPusher.setMediaStatCB({
 					userId: this.uid,
 					callback: (opts) => {
@@ -800,21 +832,16 @@ Page({
 					}
 				});
 			}
+		
+			tttPusher.start();
 		}
 
         //
         this.setData({ pushing : true });
-        // 
-      } else {
-        reject({
-          code: 400,
-          reason: "Publish forbidden"
-        });
-      }
     }).catch(e => {
 	  Utils.log(`publish failed: ${e.code} ${e.reason}`);
 	  // 
-	  this.removeMedia(this.uid);
+	  // this.removeMedia(this.uid);
 	  // 
       wx.showToast({
         title: `推流失败: ${e.code} ${e.reason}`,
@@ -827,10 +854,23 @@ Page({
   unpublish: function() {
     Utils.log(`client unpublish`);
     new Promise((resolve, reject) => {
-      // 
-      this.removeMedia(this.uid);
-      //
-      this.setData({ pushing : false });
+	  // 
+	  if (this.hasMedia('pusher', this.uid)) {
+		// if existing, update property
+		// change key property to refresh live-player
+		this.updateMedia(this.uid, { url : '' });
+	  }
+
+	  if (this.data.pushing) {
+		// 
+		const tttPusher = this.getPusherComponent();
+		if (!!tttPusher) {
+			tttPusher.stop();
+		}
+		// this.removeMedia(this.uid);
+		//
+		this.setData({ pushing : false });
+	  }
 
       // 
       if (this.data.connState === 2) {
@@ -862,8 +902,7 @@ Page({
     this.unsubscribe(e.detail.userId, false);
 
 	let msg = JSON.stringify(e.detail.errMsg);
-	if (e.detail.errCode === -2301)
-	{
+	if (e.detail.errCode === -2301) {
 		msg = '拉流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启拉流'
 	}
 
@@ -881,8 +920,6 @@ Page({
   onPushFailed: function(e) {
     Utils.log(`ttt-pusher failed!!!. pusher failed: ${JSON.stringify(e.detail.errMsg)}`);
     //
-    this.setData({ pushing : false });
-
     this.unpublish();
 
 	/*
@@ -899,7 +936,7 @@ Page({
 	}
 
     wx.showToast({
-      title: `小程序报错. pusher failed: ${msg}`,
+      title: `小程序报错. pusher failed. errCode: ${e.detail.errCode} errMsg: ${msg}`,
       icon: 'none',
       duration: 5000
     });
@@ -1015,26 +1052,6 @@ Page({
       wx.showToast({ title: `上传失败: ${e}` });
     }
     LogUploader.scheduleTasks(tasks);
-  },
-
-  /**
-   * 上麦 / 下麦 切换
-   */
-  onSpeakTurnClick: function() {
-    if (this.canPublsh()) {
-      this.becomeAudience().then(() => {
-        this.removeMedia(this.uid);
-      }).catch(e => {
-        Utils.log(`switch to audience failed ${e.stack}`);
-      });
-    } else {
-      let ts = new Date().getTime();
-      this.becomeBroadcaster().then(url => {
-        this.addMedia('pusher', this.uid, this.cid, url, { key: ts });
-      }).catch(e => {
-        Utils.log(`switch to broadcaster failed ${e.stack}`);
-      });
-    }
   },
 
   onSwitchMode: function() {
@@ -1191,7 +1208,7 @@ Page({
               userId: uid,
               onSuccess: (data) => {
                 // store the conn state.
-                this.setData({ connState: 2 });
+                this.setData({ connState : 2 });
 
                 const { connectId, pushUrl, peers } = data;
 
@@ -1218,7 +1235,8 @@ Page({
             Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
 
             reject(e);
-          }// ,
+		  }// ,
+		  // disAppAuth : true, // 
           // disIploc: true, //
           // auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
         });
@@ -1245,60 +1263,6 @@ Page({
   getPusherComponent: function() {
     const tttPusher = this.selectComponent(`#rtc-pusher`);
     return tttPusher;
-  },
-
-  becomeBroadcaster: function() {
-    return new Promise((resolve, reject) => {
-      if (!this.client) {
-        return reject({
-          code: 400,
-          reason: "TTTEngine is null. Are you init?"
-        });
-      }
-      let client = this.client;
-      this.role = 1;
-      client.setRole(this.role);
-      Utils.log(`client switching role to ${this.role}`);
-      client.publish({
-		isUpdate : false,
-        onSuccess: (url) => {
-          Utils.log(`client publish success`);
-          resolve(url);
-        },
-        onFailure: (e) => {
-          Utils.log(`client publish failed: ${e.code} ${e.reason}`);
-          wx.showToast({
-            title: `client publish failed: ${e.code} ${e.reason}`,
-            icon: 'none',
-            duration: 5000
-          });
-          reject(e);
-        }
-      });
-    })
-  },
-
-  becomeAudience: function() {
-    return new Promise((resolve, reject) => {
-      if (!this.client) {
-        return reject({
-          code: 400,
-          reason: "TTTEngine is null. Are you init?"
-        });
-      }
-
-      let client = this.client
-      client.unpublish(() => {
-        Utils.log(`client unpublish success`);
-        this.role = 2;
-        Utils.log(`client switching role to ${this.role}`);
-        client.setRole(this.role)
-        resolve();
-      }, e => {
-        Utils.log(`client unpublish failed: ${e.code} ${e.reason}`);
-        reject(e);
-      });
-    })
   },
 
   setSEI: function(users, type) {
@@ -1393,6 +1357,12 @@ Page({
     return (this.role === 1 || this.role === 2);
   },
 
+  stopAllMedia: function() {
+	this.unpublish();
+	// 
+	this.unsubscribeAll();
+  },
+
   /**
    * 注册stream事件
    */
@@ -1443,8 +1413,10 @@ Page({
 			loginStatus
 		});
 
-		// 
+		// 已登录在线
 		if (e.code == 310 || e.code == 210) {
+			this.setData({ connState : 2 });
+
 			// 此处仅仅是清空 -- 因为 sdk 内部随后会将所有 users ，通过 user-online 通知上来
 			let userIds = [];
 
@@ -1454,12 +1426,22 @@ Page({
 			});
 		}
 
+		// 当前断网进入重连状态 -- 
+		if (e.code == 3000) {
+			this.setData({ connState : 0 });
+			// 
+			// 关闭所有 media
+			this.stopAllMedia();
+		}
+
 		if (e.code == 310) {
+			/* 暂不再执行 自动 重新推流
 			// 重连且登录成功
 			// 尝试将之前的 推流/拉流 自动恢复
 			if (this.data.pushing) {
 				this.publish(true);
 			}
+			*/
 			// 
 			this.resubscribeAll();
         }
@@ -1490,7 +1472,11 @@ Page({
           selectUserId : selectUserId
         });
 		//
-		this.setSEI(userIds, 1);
+
+		// 如果是 主播， 才执行 setSEI
+		if (this.role == 1) {
+			this.setSEI(userIds, 1);
+		}
 
         Utils.log(`event: user-online -- userIds: ${JSON.stringify(userIds)}`);
       }
@@ -1514,9 +1500,11 @@ Page({
         userIds = userIds.filter(item => {
           return `${item}` != `${userId}`
 		});
-		
-		// 
-		this.setSEI(userIds, 1);
+
+		// 如果是 主播， 才执行 setSEI
+		if (this.role == 1) {
+			this.setSEI(userIds, 1);
+		}
 
         Utils.log(`event: user-offline -- userIds: ${JSON.stringify(userIds)}`);
 
@@ -1590,6 +1578,10 @@ Page({
         // update the conn state.
         this.setData({ connState: 0 });
 
+		// 关闭所有 media
+		this.stopAllMedia();
+
+		// 
         // destroy 
         client.destroy();
 
@@ -1618,7 +1610,10 @@ Page({
         Utils.log('event: disconnected');
 
         // update the conn state.
-        this.setData({ connState: 0 });
+        this.setData({ connState : 0 });
+
+		// 关闭所有 media
+		this.stopAllMedia();
 
         // destroy 
         client.destroy();
@@ -1637,7 +1632,7 @@ Page({
 		  // this.navigateIndex();
         }, 5000);
       }
-    })
+    });
 
     /**
      * when bad thing happens - we recommend you to do a 

@@ -19,7 +19,7 @@ Page({
      * {
      *   key: **important, change this key only when you want to completely refresh your dom**,
      *   type: pusher / player,
-     *   cid: cid of stream,
+     *   uid:
      *   holding: when set to true, the block will stay while native control hidden, used when needs a placeholder for media block,
      *   url: url of pusher/player
      *   left: x of pusher/player
@@ -40,23 +40,33 @@ Page({
    */
   onLoad: function(options) {
     wx.setNavigationBarTitle({
-      title: "测试"
+      title: "直播"
     });
     wx.setKeepScreenOn({
       keepScreenOn: true
     });
     // store layouter control
-    this.layouter = null;
+	this.layouter = null;
+	
+	// 
+	let ts = new Date().getTime();
+    this.addMedia('pusher', 'miniapp-3t-stream-pusher', this.data.pushUrl, {
+      key: ts
+	});
+	this.addMedia('player', 'miniapp-3t-stream-player', this.data.pullUrl, {
+		key: ts,
+		rotation: 0
+	  });
+	
+	Utils.log(`media list: ${JSON.stringify(this.data.media)}`);
   },
 
   /**
    * 生命周期函数--监听页面初次渲染完成
    */
   onReady: function() {
-
     // init layouter control
     this.initLayouter();
-
   },
 
   /**
@@ -69,12 +79,13 @@ Page({
       if (item.type === 'pusher') {
         //return for pusher
         return;
-      }
-      let player = this.getPlayerComponent(item.cid);
+	  }
+	  // 
+      let player = this.getPlayerComponent();
       if (!player) {
-        Utils.log(`player ${item.cid} component no longer exists`, "error");
+        Utils.log(`player component no longer exists`, "error");
       } else {
-        Utils.log(`player ${item.cid} component start`);
+        Utils.log(`player component start`);
         // while in background, the player maybe added but not starting
         // in this case we need to start it once come back
         player.start();
@@ -135,10 +146,10 @@ Page({
   },
 
   /**
-   * return player component via cid
+   * return player component
    */
-  getPlayerComponent: function(cid) {
-    const tttPlayer = this.selectComponent(`#rtc-player-${cid}`);
+  getPlayerComponent: function() {
+    const tttPlayer = this.selectComponent(`#rtc-player`);
     return tttPlayer;
   },
 
@@ -194,8 +205,8 @@ Page({
    * component life cycle event detached will be called, and
    * new media component life cycle event ready will then be called
    */
-  addMedia(mediaType, cid, url, options) {
-    Utils.log(`add media ${mediaType} ${cid} ${url}`);
+  addMedia(mediaType, uid, url, options) {
+    Utils.log(`add media ${mediaType} ${uid} ${url}`);
     let media = this.data.media || [];
 
     if (mediaType === 'pusher') {
@@ -203,13 +214,13 @@ Page({
       media.splice(0, 0, {
         key: options.key,
         type: mediaType,
-        cid: `${cid}`,
+        uid: `${uid}`,
         holding: false,
         url: url,
         left: 0,
         top: 320,
-        width: 160,
-        height: 120
+        width: 200,
+        height: 280
       });
     } else {
       //player
@@ -217,13 +228,13 @@ Page({
         key: options.key,
         rotation: options.rotation,
         type: mediaType,
-        cid: `${cid}`,
+        uid: `${uid}`,
         holding: false,
         url: url,
-        left: 160,
+        left: 200,
         top: 320,
-        width: 160,
-        height: 120
+        width: 200,
+        height: 280
       });
     }
 
@@ -234,6 +245,33 @@ Page({
     this.setData({
       media: media
     });
+  },
+
+  /**
+   * update media object
+   * the media component will be fully refreshed if you try to update key
+   * property.
+   */
+  updateMedia: function(uid, options) {
+    Utils.log(`update media ${uid} ${JSON.stringify(options)}`);
+    let media = this.data.media || [];
+    let changed = false;
+    for (let i = 0; i < media.length; i++) {
+      let item = media[i];
+      if (`${item.uid}` === `${uid}`) {
+        media[i] = Object.assign(item, options);
+        changed = true;
+        Utils.log(`after update media ${uid} ${JSON.stringify(item)}`)
+        break;
+      }
+    }
+
+    if (changed) {
+      return this.refreshMedia(media);
+    } else {
+      Utils.log(`media not changed: ${JSON.stringify(media)}`)
+      return Promise.resolve();
+    }
   },
 
   /**
@@ -273,28 +311,65 @@ Page({
     })
   },
 
-  startPushing: function(e) {
+  onStartPushing: function(e) {
     /*
     let context = wx.createLivePusherContext(this);
     context.start();
     */
     let ts = new Date().getTime();
-    this.addMedia('pusher', 'miniapp-3t-stream', this.data.pushUrl, {
-      key: ts
-    });
+	this.updateMedia('miniapp-3t-stream-pusher', {
+		url: this.data.pushUrl,
+		key: ts
+	});
+
+	const tttPusher = this.getPusherComponent();
+	tttPusher.start();
   },
 
   onStopPushing: function(e) {
+	/*
     let context = wx.createLivePusherContext(this);
-    context.stop();
+	context.stop();
+	*/
+	
+	const tttPusher = this.getPusherComponent();
+	tttPusher.stop();
+  },
+  
+  /**
+   * 推流状态更新回调
+   * 向 CDN 推流失败时，回调
+   */
+  onPushFailed: function(e) {
+    Utils.log(`ttt-pusher failed!!!. pusher failed: ${JSON.stringify(e.detail.errMsg)}`);
+	// 
+	
+	let msg = JSON.stringify(e.detail.errMsg);
+	if (e.detail.errCode === -1307) {
+		msg = '推流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启推流'
+	}
+
+    wx.showToast({
+      title: `小程序报错. pusher failed. errCode: ${e.detail.errCode} errMsg: ${msg}`,
+      icon: 'none',
+      duration: 5000
+    });
   },
 
-  startPlaying: function(e) {
+  onStartPlaying: function(e) {
     let ts = new Date().getTime();
-    this.addMedia('player', 'miniapp-3t-stream', this.data.pullUrl, {
-      key: ts,
-      rotation: 0
-    });
+	this.updateMedia('miniapp-3t-stream-player', {
+		url: this.data.pullUrl,
+		key: ts
+	});
+	
+	const tttPlayer = this.getPlayerComponent();
+	tttPlayer.start();
+  },
+
+  onStopPlaying: function(e) {
+	const tttPlayer = this.getPlayerComponent();
+	tttPlayer.stop();
   },
 
   onPause: function() {

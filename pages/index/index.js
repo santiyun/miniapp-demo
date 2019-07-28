@@ -59,10 +59,8 @@ Page({
 
     // 
     Utils.log(`index page onLoad: ${JSON.stringify(version)}`);
-    this.unlockJoin();
 
     //
-    this.lock = false;
     let userInfo = wx.getStorageSync("userInfo");
     if (userInfo) {
       this.setData({
@@ -193,21 +191,6 @@ Page({
     Utils.log(`checkboxChangeAutoPull : ${this.data.isAutoPull}`);
   },
 
-  /**
-   * check if join is locked now, this is mainly to prevent from clicking join btn to start multiple new pages
-   */
-  checkJoinLock: function() {
-    return !(this.lock || false);
-  },
-
-  lockJoin: function() {
-    this.lock = true;
-  },
-
-  unlockJoin: function() {
-    this.lock = false;
-  },
-
   onJoin: function(userInfo) {
     userInfo = userInfo || {};
     let roomId = this.roomId || "";
@@ -222,23 +205,14 @@ Page({
         duration: 2000
       });
     } else {
-      if (this.checkJoinLock()) {
-        this.lockJoin();
-        //
-        let role = this.data.userRole;
-        let autoPull = this.data.isAutoPull;
-        let autoPush = this.data.isAutoPush;
+      //
+      let role = this.data.userRole;
+      let autoPull = this.data.isAutoPull;
+      let autoPush = this.data.isAutoPush;
 
-        wx.navigateTo({
-          url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
-        });
-      } else {
-        wx.showToast({
-          title: 'error: lockJoin',
-          icon: 'none',
-          duration: 2000
-        });
-      }
+      wx.navigateTo({
+        url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
+      });
     }
   },
 

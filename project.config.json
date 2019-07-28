@@ -21,7 +21,7 @@
 		}
 	},
 	"compileType": "miniprogram",
-	"libVersion": "2.7.5",
+	"libVersion": "2.7.7",
 	"appid": "wxfec622d23c7aaee8",
 	"projectname": "miniapp-sdk-demo",
 	"debugOptions": {
