@@ -3,7 +3,7 @@
   <view class="content flex-center-column">
     <view class="logo-section flex-center-column">
       <image class="logo" style="width: 300rpx; height: 200rpx;" mode="aspectFit" src="../../images/logo.png"></image>
-      <text class="h1">小程序 3t 实时音视频 Demo</text>
+      <text class="h1">3T小程序实时互动直播</text>
     </view>
     <view class="form-section flex-center-column">
       <view class="rowWrapper flex-center-row">
@@ -37,17 +37,19 @@
           </label>
         </checkbox-group>
 		-->
-        <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">加入房间</button>
+        <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">互动房间</button>
       </view>
       <view class="rowWrapper flex-center-row">
+	  <!--
         <text class="h2">点击右侧按钮，将进入 [直播] 页面 --</text>
-        <button plain="true" bindtap="onTestClick" class="commonBtn">直播</button>
+	  -->
+        <button plain="true" bindtap="onTestClick" class="commonBtn">直播房间</button>
       </view>
     </view>
     <view class="footer flex-center-column">
       <image class="logo-avatar" src="./Resources/logo-white.png" background-size="cover"></image>
       <text class="logo-name">三体云</text>
-      <text>3t miniapp-sdk "{{masdkVersion}}"</text>
+      <text>Powered by 3ttech. {{masdkVersion}}</text>
     </view>
   </view>
 </view>

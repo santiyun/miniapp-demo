@@ -27,6 +27,8 @@ page {
   height: 240rpx;
   overflow: hidden;
   flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-center;
 }
 
 .content .control-container {

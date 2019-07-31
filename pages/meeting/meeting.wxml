@@ -21,18 +21,18 @@
     </picker>
   </view>
 
-  <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 180px)">
-    <cover-image class="common_button" src="./Resources/pull.png" bindtap='onSubscribeClick'></cover-image>
-    <cover-view class='common_text'>拉 流</cover-view>
-  </cover-view>
-  <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 120px)">
-    <cover-image class="common_button" src="./Resources/pull-dis.png" bindtap='onUnsubscribeClick'></cover-image>
-    <cover-view class='common_text'>停拉流</cover-view>
-  </cover-view>
-  <cover-view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; margin-left: calc(50% - 60px)">
-    <cover-image class="common_button" src="./Resources/kickout.png" bindtap='onKickoutClick'></cover-image>
-    <cover-view class='common_text'>踢 出</cover-view>
-  </cover-view>
+  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; left: 130px">
+    <image class="common_button" src="./Resources/pull.png" bindtap='onSubscribeClick'></image>
+    <view class='common_text'>拉 流</view>
+  </view>
+  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; ; left: 180px">
+    <image class="common_button" src="./Resources/pull-dis.png" bindtap='onUnsubscribeClick'></image>
+    <view class='common_text'>停拉流</view>
+  </view>
+  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; ; left: 230px">
+    <image class="common_button" src="./Resources/kickout.png" bindtap='onKickoutClick'></image>
+    <view class='common_text'>踢 出</view>
+  </view>
 
   <cover-view style="width:65px; height: 115px; position: absolute; bottom: 55px; margin-left: calc(50% - 32px)" hidden='{{!showHDTips}}'>
     <cover-image src="./Resources/hd_tips.png"></cover-image>
@@ -43,49 +43,49 @@
 
   <view class="footer flex-center-column">
     <!-- 水平方向的按钮 -->
-    <cover-view style="width:100%; height: 50px; position:absolute;bottom:5px;">
-      <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="./Resources/{{pushing?'unpush':'push'}}.png" bindtap='onPublishClick'></cover-image>
-        <cover-view class='bottom_text'>{{pushing?'停推流':'开推流'}}</cover-view>
-      </cover-view>
-      <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="Resources/switch-cam.png" bindtap='onSwitchCameraClick'></cover-image>
-        <cover-view class='bottom_text'>切换</cover-view>
-      </cover-view>
-      <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="./Resources/{{beauty == 0 ? 'beauty-dis':'beauty'}}.png" bindtap='onMakeupClick'></cover-image>
-        <cover-view class='bottom_text'>美颜</cover-view>
-      </cover-view>
-      <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="./Resources/{{muted?'mic-dis':'mic'}}.png" bindtap='onMuteClick'></cover-image>
-        <cover-view class='bottom_text'>声音</cover-view>
-      </cover-view>
+    <view style="width:100%; height: 50px; position:absolute;bottom:5px;">
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/{{pushing?'unpush':'push'}}.png" bindtap='onPublishClick'></image>
+        <view class='bottom_text'>{{pushing?'停推流':'开推流'}}</view>
+      </view>
+      <view class='bottom_box'>
+        <image class="bottom_button" src="Resources/switch-cam.png" bindtap='onSwitchCameraClick'></image>
+        <view class='bottom_text'>切换</view>
+      </view>
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/{{beauty == 0 ? 'beauty-dis':'beauty'}}.png" bindtap='onMakeupClick'></image>
+        <view class='bottom_text'>美颜</view>
+      </view>
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/{{muted?'mic-dis':'mic'}}.png" bindtap='onMuteClick'></image>
+        <view class='bottom_text'>声音</view>
+      </view>
       <!--
-      <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="./Resources/{{orientation == 'vertical'?'portrait':'landscape'}}.png" bindtap='onOrientationClick'></cover-image>
-        <cover-view class='bottom_text'>{{orientation == 'vertical'?'竖屏':'横屏'}}</cover-view>
-      </cover-view>
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/{{orientation == 'vertical'?'portrait':'landscape'}}.png" bindtap='onOrientationClick'></image>
+        <view class='bottom_text'>{{orientation == 'vertical'?'竖屏':'横屏'}}</view>
+      </view>
 	  -->
-      <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="./Resources/leave.png" bindtap='onLeaveClick'></cover-image>
-        <cover-view class='bottom_text'>退出</cover-view>
-      </cover-view>
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/leave.png" bindtap='onLeaveClick'></image>
+        <view class='bottom_text'>退出</view>
+      </view>
       <!--
-      <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="./Resources/video_mode.png" bindtap='onSwitchMode'></cover-image>
-        <cover-view class='bottom_text'>视频模式</cover-view>
-      </cover-view>
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/video_mode.png" bindtap='onSwitchMode'></image>
+        <view class='bottom_text'>视频模式</view>
+      </view>
 	  -->
-      <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="./Resources/{{debug?'log-dis':'log'}}.png" bindtap='onDebugClick'></cover-image>
-        <cover-view class='bottom_text'>{{debug?'关调试':'开调试'}}</cover-view>
-      </cover-view>
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/{{debug?'log-dis':'log'}}.png" bindtap='onDebugClick'></image>
+        <view class='bottom_text'>{{debug?'关调试':'开调试'}}</view>
+      </view>
 	  <!--
-      <cover-view class='bottom_box'>
-        <cover-image class="bottom_button" src="./Resources/upload.png" bindtap='onUpload'></cover-image>
-        <cover-view class='bottom_text'>传日志</cover-view>
-      </cover-view>
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/upload.png" bindtap='onUpload'></image>
+        <view class='bottom_text'>传日志</view>
+      </view>
 	  -->
-    </cover-view>
+    </view>
   </view>
 </view>

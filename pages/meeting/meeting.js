@@ -179,7 +179,7 @@ Page({
       .catch(e => {
         Utils.log(`init TTT Engine failed: ${e.code} ${e.reason}`);
         wx.showToast({
-          title: `登录失败：${e.code} ${e.reason}`,
+          title: `登录失败 -- ${e.code} ${e.reason}`,
           icon: 'none',
           duration: 5000
         });
@@ -438,7 +438,9 @@ Page({
       }
 
       if (media.length > MAX_USER) {
-        wx.showToast({ title: '由于房内人数超过7人，部分视频未被加载显示' });
+        wx.showToast({
+			title : '由于房内人数超过7人，部分视频未被加载显示'
+		});
       }
 
       Utils.log(`updating media: ${JSON.stringify(media)}`);
@@ -548,9 +550,9 @@ Page({
       this.subscribe(this.data.selectUserId, false);
     } else {
       wx.showToast({
-        title: `请选择 userId`,
-        icon: 'none',
-        duration: 5000
+        title    : '请选择 userId',
+        icon     : 'none',
+        duration : 5000
       });
     }
   },
@@ -563,9 +565,9 @@ Page({
       this.unsubscribe(this.data.selectUserId, true);
     } else {
       wx.showToast({
-        title: `请选择 userId`,
-        icon: 'none',
-        duration: 5000
+        title    : '请选择 userId',
+        icon     : 'none',
+        duration : 5000
       });
     }
   },
@@ -574,9 +576,9 @@ Page({
 	// 最多 7 路
 	if (this.data.media.length >= MAX_USER) {
 		wx.showToast({
-			title: `当前已到最大支持路数： ${MAX_USER}`,
-			icon: 'none',
-			duration: 5000
+			title    : `已到最大支持路数： ${MAX_USER}`,
+			icon     : 'none',
+			duration : 5000
 		  });
 
 		return;
@@ -590,9 +592,9 @@ Page({
         let client = this.client;
         if (!!client) {
 			wx.showToast({
-				title: '已发出请求，请稍候',
-				icon: 'none',
-				duration: 5000
+				title    : '已发出请求，请稍候',
+				icon     : 'none',
+				duration : 5000
 			});
 
           client.subscribe({
@@ -653,9 +655,9 @@ Page({
     }).catch(e => {
       Utils.log(`subscribe failed: ${e.code} ${e.reason}`);
       wx.showToast({
-        title: `拉流失败: ${JSON.stringify(e)}`,
-        icon: 'none',
-        duration: 5000
+        title    : `拉流失败 -- ${JSON.stringify(e)}`,
+        icon     : 'none',
+        duration : 5000
       });
     });
   },
@@ -746,9 +748,9 @@ Page({
   publish: function(isUpdate) {
 	if (this.data.pushing) {
 		wx.showToast({
-			title: '当前已推流',
-			icon: 'none',
-			duration: 3000
+			title    : '当前已推流',
+			icon     : 'none',
+			duration : 3000
 		});
 	
 		return;
@@ -757,9 +759,9 @@ Page({
 	// 最多 7 路
 	if (this.data.media.length >= MAX_USER) {
 		wx.showToast({
-			title: `当前已到最大支持路数： ${MAX_USER}`,
-			icon: 'none',
-			duration: 5000
+			title    : `已到最大支持路数 -- ${MAX_USER}`,
+			icon     : 'none',
+			duration : 5000
 		});
 
 		return;
@@ -775,9 +777,9 @@ Page({
           let client = this.client;
           if (!!client) {
 			wx.showToast({
-				title: '已发出请求，请稍候',
-				icon: 'none',
-				duration: 5000
+				title    : '已发出请求，请稍候',
+				icon     : 'none',
+				duration : 5000
 			});
 		
             client.publish({
@@ -844,9 +846,9 @@ Page({
 	  // this.removeMedia(this.uid);
 	  // 
       wx.showToast({
-        title: `推流失败: ${e.code} ${e.reason}`,
-        icon: 'none',
-        duration: 5000
+        title    : `推流失败 -- ${e.code} ${e.reason}`,
+        icon     : 'none',
+        duration : 5000
       });
     });
   },
@@ -907,9 +909,9 @@ Page({
 	}
 
     wx.showToast({
-      title: `小程序报错. player failed: ${msg}`,
-      icon: 'none',
-      duration: 5000
+      title    : `小程序 player 报错 -- ${msg}`,
+      icon     : 'none',
+      duration : 5000
     });
   },
 
@@ -936,9 +938,9 @@ Page({
 	}
 
     wx.showToast({
-      title: `小程序报错. pusher failed. errCode: ${e.detail.errCode} errMsg: ${msg}`,
-      icon: 'none',
-      duration: 5000
+      title    : `小程序 pusher 报错 -- errCode: ${e.detail.errCode} errMsg: ${msg}`,
+      icon     : 'none',
+      duration : 5000
     });
   },
 
@@ -947,9 +949,9 @@ Page({
     // 
     if (!this.data.selectUserId) {
       wx.showToast({
-        title: `请选择 userId`,
-        icon: 'none',
-        duration: 5000
+        title    : '请选择 userId',
+        icon     : 'none',
+        duration : 5000
       });
       return;
     }
@@ -970,9 +972,9 @@ Page({
 			onFailure: (e) => {
 				Utils.log(`client kickout failed: ${e.code} ${e.reason}`);
 				wx.showToast({
-					title: `client kickout failed: ${e.code} ${e.reason}`,
-					icon: 'none',
-					duration: 5000
+					title    : `踢用户失败 -- ${e.code} ${e.reason}`,
+					icon     : 'none',
+					duration : 5000
 				});
 			}
 		  });
@@ -1039,7 +1041,9 @@ Page({
       Utils.log(`log upload progress ${total - remain}/${total}`);
       if (remain === 0) {
         wx.hideLoading();
-        wx.showToast({ title: `上传成功`, });
+        wx.showToast({
+			title : '上传成功'
+		});
       } else {
         wx.showLoading({
           mask: true,
@@ -1049,7 +1053,9 @@ Page({
     });
     LogUploader.on("error"), e => {
       wx.hideLoading();
-      wx.showToast({ title: `上传失败: ${e}` });
+      wx.showToast({
+		  title : `上传失败 -- ${e}`
+		});
     }
     LogUploader.scheduleTasks(tasks);
   },
@@ -1235,10 +1241,10 @@ Page({
             Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
 
             reject(e);
-		  }// ,
-		  // disAppAuth : true, // 
-          // disIploc: true, //
-          // auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
+		  },
+		  disAppAuth : true, // 
+          disIploc: true, //
+          auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
         });
       } else {
         reject({
@@ -1446,9 +1452,10 @@ Page({
 			this.resubscribeAll();
         }
 		wx.showToast({
-            title: `session-status：${e.status}`,
-            icon: 'none',
-            duration: 5000
+			title    : `${loginStatus}`,
+            // title: `session-status：${e.status}`,
+            icon     : 'none',
+            duration : 5000
           });
       }
     });
