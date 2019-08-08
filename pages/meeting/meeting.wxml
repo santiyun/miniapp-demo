@@ -2,7 +2,7 @@
 <view id="main" class="content base-bg flex-center-column">
   <view id="video-container" class="video-container n{{totalUser}}">
     <block wx:for="{{media}}" wx:key="key">
-      <ttt-pusher wx:if="{{item.type === 'pusher' && !item.holding}}" id="rtc-pusher" name="{{item.uid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" url="{{item.url}}" muted="{{muted}}" beauty="{{beauty}}" debug="{{debug}}" bindpushfailed="onPushFailed">
+      <ttt-pusher wx:if="{{item.type === 'pusher' && !item.holding}}" id="rtc-pusher" name="{{item.uid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" url="{{item.url}}" enableCamera="{{enableCamera}}" muted="{{muted}}" beauty="{{beauty}}" debug="{{debug}}" bindpushfailed="onPushFailed">
       </ttt-pusher>
       <ttt-player wx:if="{{item.type === 'player' && !item.holding}}" id="rtc-player-{{item.cid}}" name="{{item.uid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}" bindpullfailed="onPullFailed">
       </ttt-player>
@@ -13,7 +13,7 @@
     <text class="h2">log trace id：{{logClues}}\nlogin status：{{loginStatus}}</text>
   </view>
 
-  <view style="border-top: 1px solid rgba(0, 0, 0, 0.1); display: inline-block; width: 100px; height: 60px; position: absolute; left: 10px; bottom: 80px">
+  <view style="border-top: 1px solid rgba(0, 0, 0, 0.1); display: inline-block; width: 140px; height: 60px; position: absolute; left: 10px; bottom: 80px">
     <picker bindchange="bindPickerChange" value="{{selectIndex}}" range="{{userIds}}">
       <view class="picker">
         <text class="h2">列表内用户数：{{userTotal}}\n请选择用户：{{userIds[selectIndex]}}</text>
@@ -21,15 +21,15 @@
     </picker>
   </view>
 
-  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; left: 130px">
+  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; right: 140px">
     <image class="common_button" src="./Resources/pull.png" bindtap='onSubscribeClick'></image>
     <view class='common_text'>拉 流</view>
   </view>
-  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; ; left: 180px">
+  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; ; right: 80px">
     <image class="common_button" src="./Resources/pull-dis.png" bindtap='onUnsubscribeClick'></image>
     <view class='common_text'>停拉流</view>
   </view>
-  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; ; left: 230px">
+  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; ; right: 20px">
     <image class="common_button" src="./Resources/kickout.png" bindtap='onKickoutClick'></image>
     <view class='common_text'>踢 出</view>
   </view>
@@ -70,6 +70,12 @@
         <image class="bottom_button" src="./Resources/leave.png" bindtap='onLeaveClick'></image>
         <view class='bottom_text'>退出</view>
       </view>
+	  <!--
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/video_mode.png" bindtap='onMuteClick'></image>
+        <view class='bottom_text'>{{muteRemote ? 'unmute' : 'mute'}}</view>
+      </view>
+	  -->
       <!--
       <view class='bottom_box'>
         <image class="bottom_button" src="./Resources/video_mode.png" bindtap='onSwitchMode'></image>

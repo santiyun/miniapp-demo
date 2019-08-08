@@ -1,9 +1,7 @@
 const app = getApp()
 const Utils = require('../../utils/util.js')
 
-const {
-  version
-} = require('../../lib/miniapp-sdk-3t')
+const TTTMAEngine = require('../../lib/miniapp-sdk-3t');
 
 // pages/index/index.js
 Page({
@@ -24,15 +22,25 @@ Page({
     }, {
       name: 'PARTICIPANT',
       display: '副播',
-      checked: 'true',
       value: 2
     }, {
       name: 'AUDIENCE',
       display: '观众',
-      value: 3
+      value: 3,
+      checked: 'true'
+	}],
+	// demo mode
+	// 0 -- 简易模式: 默认用户角色为 观众；用户ID自动随机生成；房间号默认为 999；
+	// 1 -- 专家模式: 用户角色可选；用户ID手动输入；房间号手动输入；
+	demoMode: 0, // 
+	// 
+    chkDemoMode: [{
+      name: 'DEMO_MODE',
+      display: '简易模式',
+      checked: true
     }],
     // 用户角色
-    userRole: 2,
+    userRole: 3,
     // 
     chkPushOn: [{
       name: 'PUSH_STREAM',
@@ -54,11 +62,11 @@ Page({
    * 生命周期函数--监听页面加载
    */
   onLoad: function(options) {
-    this.roomId = "";
-    this.userId = "";
+	this.roomId = '999';
+	this.userId = '';
 
     // 
-    Utils.log(`index page onLoad: ${JSON.stringify(version)}`);
+    Utils.log(`index page onLoad: ${JSON.stringify(TTTMAEngine.getVersion())}`);
 
     //
     let userInfo = wx.getStorageSync("userInfo");
@@ -71,7 +79,7 @@ Page({
 
     // 
     this.setData({
-      masdkVersion: `${JSON.stringify(version)}`
+      masdkVersion: `${JSON.stringify(TTTMAEngine.getVersion())}`
     });
   },
 
@@ -122,7 +130,7 @@ Page({
       key: 'userInfo',
       data: userInfo,
     })
-    this.onJoin(userInfo);
+    this.onJoin();
   },
 
   radioChangeUserRole: function(e) {
@@ -145,6 +153,28 @@ Page({
     });
 
     Utils.log(`radioChangeUserRole : ${this.data.userRole}`);
+  },
+
+  checkboxChangeDemoMode(e) {
+    let value = e.detail.value.toString();
+    let items = this.data.chkDemoMode || [];
+
+    let isDemoMode = false;
+
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i];
+
+      if (value.search(`${item.name}`) !== -1) {
+        isDemoMode = true;
+        break;
+      }
+    }
+
+    this.setData({
+      demoMode: isDemoMode ? 0 : 1
+    });
+
+    Utils.log(`checkboxChangeDemoMode : ${this.data.demoMode}`);
   },
 
   checkboxChangeAutoPush(e) {
@@ -191,24 +221,32 @@ Page({
     Utils.log(`checkboxChangeAutoPull : ${this.data.isAutoPull}`);
   },
 
-  onJoin: function(userInfo) {
-    userInfo = userInfo || {};
-    let roomId = this.roomId || "";
-    let userId = this.userId || "";
+  onJoin: function() {
+	let demoMode = this.data.demoMode;
+	if (this.data.demoMode == 0) {
+		// 自动随机生成 userId
+		this.userId = `${Math.floor(Math.random() * 1000000)}`;
+	}
+
+	let roomId = this.roomId || "";
+	let userId = this.userId || "";
 
     let t = (typeof userId);
 
-    if (!roomId || !userId) {
+    if (!roomId || parseInt(roomId) == 0 || !userId || parseInt(userId) == 0) {
       wx.showToast({
         title: '请提供相应参数',
         icon: 'none',
         duration: 2000
       });
     } else {
-      //
+	  //
       let role = this.data.userRole;
       let autoPull = this.data.isAutoPull;
-      let autoPush = this.data.isAutoPush;
+	  let autoPush = this.data.isAutoPush;
+	  
+	  roomId = parseInt(roomId);
+	  userId = parseInt(userId);
 
       wx.navigateTo({
         url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`

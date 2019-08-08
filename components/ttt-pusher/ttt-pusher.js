@@ -29,7 +29,11 @@ Component({
     y: {
       type: Number,
       value: 0
-    },
+	},
+	enableCamera: {
+		type: Boolean,
+		value: 1
+	},
     muted: {
       type: Boolean,
       value: !1

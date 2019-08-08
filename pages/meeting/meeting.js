@@ -1,8 +1,9 @@
 // pages/meeting/meeting.js
-const app = getApp()
-const Utils = require('../../utils/util.js')
+const app = getApp();
+const Utils = require('../../utils/util.js');
 
-import { TTTMAEngine, TTTLog } from '../../lib/miniapp-sdk-3t';
+const TTTMAEngine = require('../../lib/miniapp-sdk-3t');
+// import { Client, TTTLog } from '../../lib/miniapp-sdk-3t';
 
 // 
 // 最大用户数量
@@ -51,7 +52,9 @@ Page({
     /**
      * muted
      */
-    muted: false,
+	muted: false,
+	enableCamera: true,
+	muteRemote: false,
     showHDTips: false, // 默认不显示清晰度弹窗
     mode: "RTC",
     /**
@@ -64,7 +67,7 @@ Page({
     /**
      * debug
      */
-    debug: true, // 默认开启 debug
+    debug: false, // 默认关闭 debug
     /**
      * 登录状态
      * 0 -- idle
@@ -98,7 +101,7 @@ Page({
     // 是否自动拉流
     this.autoPull = false; // (options.autoPull === 'true') ? true : false;
     // 是否自动推流
-    this.autoPush = false; // (options.autoPush === 'true') ? true : false;
+	this.autoPush = false; // (options.autoPush === 'true') ? true : false;
 
     Utils.log(`this.autoPull : ${this.autoPull} this.autoPush : ${this.autoPush}`);
     //
@@ -245,10 +248,10 @@ Page({
     if (this.canPublsh()) {
       try {
         if (!!this.client) {
-          this.client.unpublish({
-            onSuccess: () => {},
-            onFailure: (e) => {}
-          });
+          this.client.unpublish(
+            () => {},
+            (e) => {}
+          );
         } else {
           reject({
             code: 400,
@@ -501,10 +504,9 @@ Page({
 			
 			let client = this.client;
 			if (!!client) {
-				client.destroy({
-					onSuccess : () => {},
-					onFailure : () => {}
-				});
+				client.destroy(
+					() => {},
+					() => {});
 			}
 
             wx.reLaunch({
@@ -597,18 +599,17 @@ Page({
 				duration : 5000
 			});
 
-          client.subscribe({
+          client.subscribe(
 			userId,
-			isUpdate,
-            onSuccess: (data) => {
+            (data) => {
               Utils.log(`client subscribe success. url:${data.url}`);
               resolve(data);
             },
-            onFailure: (e) => {
+            (e) => {
               Utils.log(`client subscribe failed: ${e.code} ${e.reason}`);
               reject(e);
-            }
-          });
+            });// ,
+			// isUpdate);
         } else {
           reject({
             code: 400,
@@ -645,7 +646,7 @@ Page({
 				callback: (opts) => {
 					// 
 					const { code, type, userId, message } = opts;
-					client.mediaStat({ code, type, userId, message });
+					client.mediaStat( code, type, userId, message );
 				}
 			});
 		}
@@ -671,11 +672,10 @@ Page({
 
       let client = this.client;
       if (!!client) {
-        client.unsubscribe({
+        client.unsubscribe(
           userId,
-          onSuccess: () => {},
-          onFailure: (e) => {}
-        });
+          () => {},
+          (e) => {});
       }
       resolve();
     }).catch(e => {
@@ -719,11 +719,10 @@ Page({
 
         let client = this.client;
         if (!!client) {
-          client.unsubscribe({
-            userId: item.uid,
-            onSuccess: () => {},
-            onFailure: (e) => {}
-          });
+          client.unsubscribe(
+            item.uid,
+            () => {},
+            (e) => {});
         }
       }
 
@@ -782,17 +781,16 @@ Page({
 				duration : 5000
 			});
 		
-            client.publish({
-				isUpdate,
-              onSuccess: (data) => {
+            client.publish(
+              (data) => {
                 Utils.log(`client publish success. url:${data.url}`);
                 resolve(data.url);
               },
-              onFailure: (e) => {
+              (e) => {
                 Utils.log(`client publish failed: ${e.code} ${e.reason}`);
                 reject(e);
-              }
-            });
+			  });// ,
+			  // isUpdate);
           } else {
             reject({
               code: 400,
@@ -830,7 +828,7 @@ Page({
 					callback: (opts) => {
 					const { code, type, userId, message } = opts;
 				
-					client.mediaStat({ code, type, userId, message });
+					client.mediaStat( code, type, userId, message );
 					}
 				});
 			}
@@ -878,10 +876,9 @@ Page({
       if (this.data.connState === 2) {
         let client = this.client;
         if (!!client) {
-          client.unpublish({
-            onSuccess: () => {},
-            onFailure: (e) => {}
-          });
+          client.unpublish(
+            () => {},
+            (e) => {});
         }
       }
       resolve();
@@ -964,20 +961,19 @@ Page({
           let client = this.client;
 		  if (!client)
 			return;
-		  client.kickout({
-			userId: this.data.selectUserId,
-			onSuccess: () => {
+		  client.kickout(
+			this.data.selectUserId,
+			() => {
 				Utils.log('client kickout success.');
 			},
-			onFailure: (e) => {
+			(e) => {
 				Utils.log(`client kickout failed: ${e.code} ${e.reason}`);
 				wx.showToast({
 					title    : `踢用户失败 -- ${e.code} ${e.reason}`,
 					icon     : 'none',
 					duration : 5000
 				});
-			}
-		  });
+			});
         }
       }
     });
@@ -990,7 +986,16 @@ Page({
   onMuteClick: function() {
     this.setData({ muted : !this.data.muted });
 
-    Utils.log(`muted : ${this.data.muted}`);
+	Utils.log(`muted : ${this.data.muted}`);
+	
+	// 
+	this.onEnableCamera();
+  },
+
+  onEnableCamera: function() {
+	  this.setData({ enableCamera : !this.data.enableCamera });
+
+	  Utils.log(`enableCamera : ${this.data.enableCamera}`);
   },
 
   /**
@@ -1060,9 +1065,47 @@ Page({
     LogUploader.scheduleTasks(tasks);
   },
 
+  onMuteClick: function() {
+	let client = this.client;
+	if (!client) {
+		return;
+	}
+
+	var muteRemote = !this.data.muteRemote;
+	this.setData({ muteRemote : muteRemote });
+
+	if (muteRemote) {
+		client.mute(this.data.selectUserId,
+			() => {
+				Utils.log('client mute success.');
+			},
+			(e) => {
+				Utils.log(`client mute failed: ${e.code} ${e.reason}`);
+				wx.showToast({
+					title    : `${e.code} ${e.reason}`,
+					icon     : 'none',
+					duration : 5000
+				});
+			});
+	} else {
+		client.unmute(this.data.selectUserId,
+			() => {
+				Utils.log('client unmute success.');
+			},
+			(e) => {
+				Utils.log(`client unmute failed: ${e.code} ${e.reason}`);
+				wx.showToast({
+					title    : `${e.code} ${e.reason}`,
+					icon     : 'none',
+					duration : 5000
+				});
+			});
+	}
+  },
+
   onSwitchMode: function() {
     var showTips = !this.data.showHDTips;
-    this.setData({ showHDTips : showTips });
+	this.setData({ showHDTips : showTips });
   },
 
   /**
@@ -1139,7 +1182,7 @@ Page({
       userId: this.uid,
       callback: (opts) => {
         const { code, type, userId, message } = opts;
-        client.mediaStat({ code, type, userId, message });
+        client.mediaStat( code, type, userId, message );
       }
     });
 
@@ -1153,7 +1196,7 @@ Page({
         userId: this.uid,
         callback: (opts) => {
           const { code, type, userId, message } = opts;
-          client.mediaStat({ code, type, userId, message });
+          client.mediaStat( code, type, userId, message );
         }
       });
     }
@@ -1166,38 +1209,25 @@ Page({
     return new Promise((resolve, reject) => {
       let client = {}
 
-      // Create TTTMAEngine
-      Utils.log(`TTTMAEngine`);
+      // Create Client
+      Utils.log(`Client`);
 
-      client = new TTTMAEngine({
-        appId: APPID,
-        userId: uid,
-        server: (this.testEnv ? TEST_SERVER : null)
-      });
-
-      // Set log callback
-      let log3t = new TTTLog({
-        level: -1,
-        callback: (text) => {
-          // callback to expose sdk logs
-          Utils.log(text);
-        }
-      });
-
+      client = new TTTMAEngine.Client(APPID, uid);
       // store TTT Engine 
       this.client = client;
       if (!!client) {
-		  // 
-        client.setRole({
-          role: this.role,
-          onSuccess: () => {},
-          onFailure: () => {}
-        });
+		// 
+		client.setLogLevel('LOG_DEBUG');
+		// 
+        client.setRole(
+          this.role,
+          () => {},
+          () => {});
         // 调用 TTTEngine 初始化
-        client.init({
-          appId: APPID,
-          userId: uid,
-          onSuccess: (e) => {
+        client.init(
+          APPID,
+          uid,
+          (e) => {
 			// 
 			const { logClues } = e;
 			this.setData({ logClues : logClues });
@@ -1209,43 +1239,36 @@ Page({
             this.subscribeEvents(client);
 
             // pass key instead of undefined if certificate is enabled
-            client.join({
-              roomId: roomId,
-              userId: uid,
-              onSuccess: (data) => {
+            client.join(
+              roomId,
+              uid,
+              (data) => {
                 // store the conn state.
                 this.setData({ connState : 2 });
 
                 const { connectId, pushUrl, peers } = data;
 
                 this.cid = connectId;
-                // TODO : peers
-
-                //
-                for (const peer of peers) {
-                  Utils.log(`peer: connectId: ${peer.connectId} userId: ${peer.userId} role: ${peer.role}`);
-                }
 
                 Utils.log(`client join room success. connectId: ${connectId} pushUrl: ${pushUrl} peers: ${peers}`);
 
                 resolve();
               },
-              onFailure: (e) => {
+              (e) => {
                 Utils.log(`client join room failed: ${e.code} ${e.reason}`);
 
                 reject(e);
-              }
-            });
+              });
           },
-          onFailure: (e) => {
+          (e) => {
             Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
 
             reject(e);
-		  },
-		  disAppAuth : true, // 
-          disIploc: true, //
-          auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
-        });
+		  }// ,
+		  // disAppAuth : true, // 
+          // disIploc: true, //
+          // auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
+        );
       } else {
         reject({
           code: 400,
@@ -1341,13 +1364,12 @@ Page({
 
     let client = this.client;
     if (!!client) {
-      client.setSEI({
-        userId: this.uid,
-        opType: type,
+      client.setSEI(
+        this.uid,
+        type,
         sei,
-        onSuccess: () => {},
-        onFailure: () => {}
-      });
+        () => {},
+        () => {});
     } else {
       reject({
         code: 400,
@@ -1381,20 +1403,19 @@ Page({
      * in case of 270 degrees, the video could be
      * up side down
      */
-    client.on({
-      event: "video-rotation",
-      callback: (e) => {
+    client.on(
+      "video-rotation",
+      (e) => {
         Utils.log(`event: video-rotated: ${e.rotation} ${e.cid}`);
         setTimeout(() => {
           const player = this.getPlayerComponent(e.cid);
           player && player.rotate(e.rotation);
         }, 1000);
-      }
-    });
+      });
 
-    client.on({
-      event: "session-status",
-      callback: (e) => {
+    client.on(
+      "session-status",
+      (e) => {
         Utils.log(`event: session-status -- uid: ${e.uid} cid: ${e.cid} status: ${e.status}`);
 		// 
 		let loginStatus = '';
@@ -1424,10 +1445,8 @@ Page({
 			this.setData({ connState : 2 });
 
 			// 此处仅仅是清空 -- 因为 sdk 内部随后会将所有 users ，通过 user-online 通知上来
-			let userIds = [];
-
 			this.setData({
-				userIds     : userIds,
+				userIds     : [],
 				userTotal   : 0
 			});
 		}
@@ -1457,27 +1476,28 @@ Page({
             icon     : 'none',
             duration : 5000
           });
-      }
-    });
+      });
 
-    client.on({
-      event: "user-online",
-      callback: (userData) => {
-        Utils.log(`event: user-online uid: ${userData.userId}`);
-        // 
-        let userIds = this.data.userIds || [];
-        userIds.push(`${userData.userId}`);
+    client.on(
+      "user-online",
+      (userData) => {
+		Utils.log(`event: user-online uid: ${userData.userId} role: ${userData.role} ueType: ${userData.ueType}`);
+		
+		// 
+		let userIds = this.data.userIds || [];
+		
+		userIds.push(`${userData.userId}`);
 		//
 		let userTotal = userIds.length;
 
-        let index = 0;
-        let selectUserId = userIds[0];
-        this.setData({
-		  userIds      : userIds,
-		  userTotal,
-          selectIndex  : index,
-          selectUserId : selectUserId
-        });
+		let index = 0;
+		let selectUserId = userIds[0];
+		this.setData({
+			userIds      : userIds,
+			userTotal,
+			selectIndex  : index,
+			selectUserId : selectUserId
+		});
 		//
 
 		// 如果是 主播， 才执行 setSEI
@@ -1486,12 +1506,11 @@ Page({
 		}
 
         Utils.log(`event: user-online -- userIds: ${JSON.stringify(userIds)}`);
-      }
-    });
+      });
 
-    client.on({
-      event: "user-offline",
-      callback: (userId) => {
+    client.on(
+      "user-offline",
+      (userId) => {
         Utils.log(`event: user-offline -- uid: ${userId}`);
 
         // 
@@ -1502,10 +1521,10 @@ Page({
           this.removeMedia(userId);
         }
 
-        // 
-        let userIds = this.data.userIds || [];
-        userIds = userIds.filter(item => {
-          return `${item}` != `${userId}`
+		// 
+		let userIds = this.data.userIds || [];
+		userIds = userIds.filter(item => {
+			return `${item}` != `${userId}`
 		});
 
 		// 如果是 主播， 才执行 setSEI
@@ -1513,33 +1532,32 @@ Page({
 			this.setSEI(userIds, 1);
 		}
 
-        Utils.log(`event: user-offline -- userIds: ${JSON.stringify(userIds)}`);
+		Utils.log(`event: user-offline -- userIds: ${JSON.stringify(userIds)}`);
 
-        // 
-        let index = 0;
+		// 
+		let index = 0;
 		let selectUserId = 0;
 
 		let userTotal = userIds.length;
-        if (userTotal > 0) {
-          selectUserId = userIds[0];
-          index = 0;
+		if (userTotal > 0) {
+			selectUserId = userIds[0];
+			index = 0;
 		}
 		
-        this.setData({
-		  userIds      : userIds,
-		  userTotal,
-          selectIndex  : index,
-          selectUserId : selectUserId
-        });
-      }
-    });
+		this.setData({
+			userIds      : userIds,
+			userTotal,
+			selectIndex  : index,
+			selectUserId : selectUserId
+		});
+      });
 
     /**
      * fired when new stream join the room
      */
-    client.on({
-      event: "stream-added",
-      callback: (e) => {
+    client.on(
+      "stream-added",
+      (e) => {
         let userId = e.uid;
         const ts = new Date().getTime();
         Utils.log(`event: stream-added -- uid: ${userId} this.autoPull: ${this.autoPull}`);
@@ -1549,15 +1567,14 @@ Page({
           this.subscribe(userId, false);
         }
         // 
-      }
-    });
+      });
 
     /**
      * remove stream when it leaves the room
      */
-    client.on({
-      event: "stream-removed",
-      callback: (e) => {
+    client.on(
+      "stream-removed",
+      (e) => {
         let uid = e.uid;
         Utils.log(`event: stream-removed -- uid: ${uid}`);
         //
@@ -1566,15 +1583,14 @@ Page({
           // 首先移除该用户流（如果已存在）
           this.removeMedia(uid);
         }
-      }
-    });
+      });
 
     /**
      * kickout by the other user
      */
-    client.on({
-      event: "kickout",
-      callback: (e) => {
+    client.on(
+      "kickout",
+      (e) => {
         Utils.log('I got kicked out by the others');
 
         let errObj = e || {};
@@ -1605,15 +1621,14 @@ Page({
 
 		  // this.navigateIndex();
         }, 5000);
-      }
-    })
+      });
 
     /**
      * 与 miniapp-au 的连接已断开（尝试n次重连后的全局断开，才会触发该事件）
      */
-    client.on({
-      event: "disconnected",
-      callback: (e) => {
+    client.on(
+      "disconnected",
+      (e) => {
         Utils.log('event: disconnected');
 
         // update the conn state.
@@ -1638,8 +1653,7 @@ Page({
 
 		  // this.navigateIndex();
         }, 5000);
-      }
-    });
+      });
 
     /**
      * when bad thing happens - we recommend you to do a 
@@ -1647,9 +1661,9 @@ Page({
      * it's also recommended to wait for few seconds before
      * reconnect attempt
      */
-    client.on({
-      event: "error",
-      callback: (e) => {
+    client.on(
+      "error",
+      (e) => {
         let errObj = e || {};
         let code = errObj.code || 0;
         let reason = errObj.reason || "";
@@ -1658,7 +1672,6 @@ Page({
 
         // TODO : reconnect for some code
         // ...
-      }
-    });
+      });
   }
 })
