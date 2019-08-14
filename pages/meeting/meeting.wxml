@@ -57,7 +57,7 @@
         <view class='bottom_text'>美颜</view>
       </view>
       <view class='bottom_box'>
-        <image class="bottom_button" src="./Resources/{{muted?'mic-dis':'mic'}}.png" bindtap='onMuteClick'></image>
+        <image class="bottom_button" src="./Resources/{{muted?'mic-dis':'mic'}}.png" bindtap='onMuteLocalClick'></image>
         <view class='bottom_text'>声音</view>
       </view>
       <!--
@@ -70,12 +70,6 @@
         <image class="bottom_button" src="./Resources/leave.png" bindtap='onLeaveClick'></image>
         <view class='bottom_text'>退出</view>
       </view>
-	  <!--
-      <view class='bottom_box'>
-        <image class="bottom_button" src="./Resources/video_mode.png" bindtap='onMuteClick'></image>
-        <view class='bottom_text'>{{muteRemote ? 'unmute' : 'mute'}}</view>
-      </view>
-	  -->
       <!--
       <view class='bottom_box'>
         <image class="bottom_button" src="./Resources/video_mode.png" bindtap='onSwitchMode'></image>

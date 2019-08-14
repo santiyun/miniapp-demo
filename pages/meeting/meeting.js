@@ -983,13 +983,13 @@ Page({
   /**
    * 静音回调
    */
-  onMuteClick: function() {
+  onMuteLocalClick: function() {
     this.setData({ muted : !this.data.muted });
 
 	Utils.log(`muted : ${this.data.muted}`);
 	
 	// 
-	this.onEnableCamera();
+	// this.onEnableCamera();
   },
 
   onEnableCamera: function() {
@@ -1212,7 +1212,7 @@ Page({
       // Create Client
       Utils.log(`Client`);
 
-      client = new TTTMAEngine.Client(APPID, uid);
+      client = new TTTMAEngine.Client(APPID, uid, false/*true*/);
       // store TTT Engine 
       this.client = client;
       if (!!client) {
