@@ -172,16 +172,7 @@ Component({
         });
       }
 
-      // 
-      if (e.detail.code === -1301 ||
-        e.detail.code === -1302 ||
-        e.detail.code === -1303 ||
-        e.detail.code === -1304 ||
-        e.detail.code === -1305 ||
-        e.detail.code === -1306 ||
-        e.detail.code === -1307 ||
-        e.detail.code === -1308 ||
-        e.detail.code === -1309) {
+      if (e.detail.code === -1307) {
         // re-push
         Utils.log('ttt-pusher stateChange() stopped', "error");
         this.setData({
@@ -192,6 +183,7 @@ Component({
 			errCode : e.detail.code,
 			errMsg  : e.detail.message
 		});
+		// 
       }
 
       if (e.detail.code === 1008) {
