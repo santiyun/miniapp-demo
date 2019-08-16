@@ -2,8 +2,8 @@
 const app = getApp();
 const Utils = require('../../utils/util.js');
 
-const TTTMAEngine = require('../../lib/miniapp-sdk-3t');
-// import { Client, TTTLog } from '../../lib/miniapp-sdk-3t';
+const TTTMAEngine = require('../../lib/3T_Miniapp_SDK_for_WeChat');
+// import { Client, TTTLog } from '../../lib/3T_Miniapp_SDK_for_WeChat';
 
 // 
 // 最大用户数量
@@ -552,7 +552,7 @@ Page({
       this.subscribe(this.data.selectUserId, false);
     } else {
       wx.showToast({
-        title    : '请选择 userId',
+        title    : '请从左侧列表中选择 userId',
         icon     : 'none',
         duration : 5000
       });
@@ -567,7 +567,7 @@ Page({
       this.unsubscribe(this.data.selectUserId, true);
     } else {
       wx.showToast({
-        title    : '请选择 userId',
+        title    : '请从左侧列表中选择 userId',
         icon     : 'none',
         duration : 5000
       });
@@ -800,7 +800,7 @@ Page({
         } else {
           reject({
             code: 400,
-            reason: "Publish forbidden. Please check you user-role."
+            reason: "请求被拒，请检查用户角色- 建议:取消[简易模式]，选择[主播/副播]重新登录"
           });
         }
       } else {
@@ -844,7 +844,7 @@ Page({
 	  // this.removeMedia(this.uid);
 	  // 
       wx.showToast({
-        title    : `推流失败 -- ${e.code} ${e.reason}`,
+        title    : `失败 -- ${e.reason}`,
         icon     : 'none',
         duration : 5000
       });
@@ -946,7 +946,7 @@ Page({
     // 
     if (!this.data.selectUserId) {
       wx.showToast({
-        title    : '请选择 userId',
+        title    : '请从左侧列表中选择 userId',
         icon     : 'none',
         duration : 5000
       });
@@ -1212,7 +1212,8 @@ Page({
       // Create Client
       Utils.log(`Client`);
 
-      client = new TTTMAEngine.Client(APPID, uid, false/*true*/);
+	  // 第三个参数用来表明是否为 测试环境 -- true：测试环境；false：生产环境
+      client = new TTTMAEngine.Client(APPID, uid, false);
       // store TTT Engine 
       this.client = client;
       if (!!client) {

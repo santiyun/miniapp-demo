@@ -37,7 +37,7 @@
 
     	const APPID = 'abcdefg'
     	
-4. 下载 [TTT Miniapp SDK](https://xxx.3ttech.cn/downloads)，将 SDK 重新命名为 “miniapp-sdk-3t.js"，保存到本示例程序的 *lib* 目录下
+4. 下载 [TTT Miniapp SDK](https://xxx.3ttech.cn/downloads)，将 SDK 重新命名为 “3T_Miniapp_SDK_for_WeChat.js"，保存到本示例程序的 *lib* 目录下
 5. 启动微信开发者工具并导入该示例程序
 6. 输入频道名，加入频道。邀请你的朋友加入同一个频道，就可以开始视频互通了。
 

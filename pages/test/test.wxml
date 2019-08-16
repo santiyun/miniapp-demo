@@ -1,8 +1,10 @@
 <!--pages/test/test.wxml-->
 <view class="content">
+<!--
   <view class="information-box">
-    <text class="h2">rtmp 直播</text>
+    <text class="h2">rtmp 测试</text>
   </view>
+  -->
   <view class="control-container">
     <view style="display: flex; flex-direction: row; align-items: center; justify-content: flex-end; margin-top: 20rpx;">
       <view style="padding: 0rpx 2rpx; border-bottom: 1px solid rgba(0,0,0,0.1);border-top: 1px solid rgba(0,0,0,0.1);">

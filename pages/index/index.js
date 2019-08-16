@@ -1,7 +1,7 @@
 const app = getApp()
 const Utils = require('../../utils/util.js')
 
-const TTTMAEngine = require('../../lib/miniapp-sdk-3t');
+const TTTMAEngine = require('../../lib/3T_Miniapp_SDK_for_WeChat');
 
 // pages/index/index.js
 Page({
@@ -240,17 +240,21 @@ Page({
         duration: 2000
       });
     } else {
-	  //
-      let role = this.data.userRole;
-      let autoPull = this.data.isAutoPull;
-	  let autoPush = this.data.isAutoPush;
-	  
-	  roomId = parseInt(roomId);
-	  userId = parseInt(userId);
+	  if (roomId === 'test') {
+		this.onTestClick();
+	  } else {
+		//
+		let role = this.data.userRole;
+		let autoPull = this.data.isAutoPull;
+		let autoPush = this.data.isAutoPush;
+		
+		roomId = parseInt(roomId);
+		userId = parseInt(userId);
 
-      wx.navigateTo({
-        url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
-      });
+		wx.navigateTo({
+			url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
+		});
+	  }
     }
   },
 

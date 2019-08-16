@@ -40,7 +40,7 @@ Page({
    */
   onLoad: function(options) {
     wx.setNavigationBarTitle({
-      title: "直播"
+      title: "测试"
     });
     wx.setKeepScreenOn({
       keepScreenOn: true
