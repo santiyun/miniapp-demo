@@ -45,16 +45,16 @@ Page({
      * }
      */
     media: [],
-	userIds: [], // 当前房间内的用户列表
-	userTotal: 0,
-	logClues: '', // 日志跟踪用
-	loginStatus: '', // 当前登录状态
+    userIds: [], // 当前房间内的用户列表
+    userTotal: 0,
+    logClues: '', // 日志跟踪用
+    loginStatus: '', // 当前登录状态
     /**
      * muted
      */
-	muted: false,
-	enableCamera: true,
-	muteRemote: false,
+    muted: false,
+    enableCamera: true,
+    muteRemote: false,
     showHDTips: false, // 默认不显示清晰度弹窗
     mode: "RTC",
     /**
@@ -99,9 +99,9 @@ Page({
     // default role to broadcaster
     this.role = parseInt(options.role) || 1;
     // 是否自动拉流
-    this.autoPull = false; // (options.autoPull === 'true') ? true : false;
+    this.autoPull = (options.autoPull === 'true') ? true : false;
     // 是否自动推流
-	this.autoPush = false; // (options.autoPush === 'true') ? true : false;
+    this.autoPush = (options.autoPush === 'true') ? true : false;
 
     Utils.log(`this.autoPull : ${this.autoPull} this.autoPush : ${this.autoPush}`);
     //
@@ -122,7 +122,9 @@ Page({
     wx.setNavigationBarTitle({
       title: `${this.roomId}(${this.uid})-(role:${this.role})`
     });
-    wx.setKeepScreenOn({ keepScreenOn: true });
+    wx.setKeepScreenOn({
+      keepScreenOn: true
+    });
 
     /**
      * please remove this part in your production environment
@@ -134,19 +136,21 @@ Page({
         content: '您正处于测试环境',
         showCancel: false
       });
-	}
-	
+    }
+
     // init layouter control
     this.initLayouter();
 
-	// 自动加载 pusher
-	if (this.canPublsh()) {
-		// first time init, add pusher media to view		
-		let ts = new Date().getTime();
+    /*
+    // 自动加载 pusher
+    if (this.canPublsh()) {
+    	// first time init, add pusher media to view		
+    	let ts = new Date().getTime();
 
-		this.addMedia('pusher', this.uid, /*this.cid*/'', '', { key: ts });
-		// 
-	}
+    	this.addMedia('pusher', this.uid, '', '', { key: ts });
+    	// 
+    }
+    */
   },
 
   /**
@@ -157,7 +161,7 @@ Page({
     let uid = this.uid;
     Utils.log(`onReady`);
 
-	/*
+    /*
     // schedule log auto update, remove this if this is not needed
     this.logTimer = setInterval(() => {
       this.uploadLogs();
@@ -167,13 +171,13 @@ Page({
     // init TTT Engine
     this.initEngine(uid, roomId)
       .then(() => {
-		let userIds = this.data.userIds || [];
-		Utils.log(`init TTT Engine ok. userIds: ${JSON.stringify(userIds)}`);
+        let userIds = this.data.userIds || [];
+        Utils.log(`init TTT Engine ok. userIds: ${JSON.stringify(userIds)}`);
 
-		// 如果是 主播， 才执行 setSEI
-		if (this.role == 1) {
-			this.setSEI(userIds, 1);
-		}
+        // 如果是 主播， 才执行 setSEI
+        if (this.role == 1) {
+          this.setSEI(userIds, 1);
+        }
 
         if (this.autoPush) {
           this.publish(false);
@@ -187,13 +191,13 @@ Page({
           duration: 5000
         });
         //
-					
-		setTimeout(() => {
-			wx.reLaunch({
-				url: '../index/index'
-			});
-		//	this.navigateIndex();
-		}, 3000);
+
+        setTimeout(() => {
+          wx.reLaunch({
+            url: '../index/index'
+          });
+          //	this.navigateIndex();
+        }, 3000);
       });
   },
 
@@ -265,11 +269,11 @@ Page({
     // client.destroy 内部将自动调用 leave
     this.client && this.client.destroy();
 
-	// 
+    // 
     wx.reLaunch({
       url: '../index/index'
-	});
-	// this.navigateIndex();
+    });
+    // this.navigateIndex();
   },
 
   /**
@@ -430,6 +434,7 @@ Page({
    */
   refreshMedia: function(media) {
     return new Promise((resolve) => {
+      /*
       for (let i = 0; i < media.length; i++) {
         if (i < MAX_USER) {
           //show
@@ -439,11 +444,12 @@ Page({
           media[i].holding = true;
         }
       }
+      */
 
       if (media.length > MAX_USER) {
         wx.showToast({
-			title : '由于房内人数超过7人，部分视频未被加载显示'
-		});
+          title: '由于房内人数超过7人，部分视频未被加载显示'
+        });
       }
 
       Utils.log(`updating media: ${JSON.stringify(media)}`);
@@ -500,20 +506,20 @@ Page({
       success: (res) => {
         if (res.confirm) {
           if (!this.leaving) {
-			this.leaving = true;
-			
-			let client = this.client;
-			if (!!client) {
-				client.destroy(
-					() => {},
-					() => {});
-			}
+            this.leaving = true;
+
+            let client = this.client;
+            if (!!client) {
+              client.destroy(
+                () => {},
+                () => {});
+            }
 
             wx.reLaunch({
               url: '../index/index'
-			});
+            });
 
-			// this.navigateIndex();
+            // this.navigateIndex();
           }
         } else if (res.cancel) {
           console.log('用户点击取消')
@@ -542,9 +548,9 @@ Page({
   },
 
   navigateIndex: function() {
-	wx.redirectTo({
-        url: '../index/index',
-      });
+    wx.redirectTo({
+      url: '../index/index',
+    });
   },
 
   onSubscribeClick: function() {
@@ -552,9 +558,9 @@ Page({
       this.subscribe(this.data.selectUserId, false);
     } else {
       wx.showToast({
-        title    : '请从左侧列表中选择 userId',
-        icon     : 'none',
-        duration : 5000
+        title: '请从左侧列表中选择 userId',
+        icon: 'none',
+        duration: 5000
       });
     }
   },
@@ -567,25 +573,25 @@ Page({
       this.unsubscribe(this.data.selectUserId, true);
     } else {
       wx.showToast({
-        title    : '请从左侧列表中选择 userId',
-        icon     : 'none',
-        duration : 5000
+        title: '请从左侧列表中选择 userId',
+        icon: 'none',
+        duration: 5000
       });
     }
   },
 
   subscribe: function(userId, isUpdate) {
-	// 最多 7 路
-	if (this.data.media.length >= MAX_USER) {
-		wx.showToast({
-			title    : `已到最大支持路数： ${MAX_USER}`,
-			icon     : 'none',
-			duration : 5000
-		  });
+    // 最多 7 路
+    if (this.data.media.length >= MAX_USER) {
+      wx.showToast({
+        title: `已到最大支持路数： ${MAX_USER}`,
+        icon: 'none',
+        duration: 5000
+      });
 
-		return;
-	}
-	
+      return;
+    }
+
     // 
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
@@ -593,14 +599,14 @@ Page({
         // 
         let client = this.client;
         if (!!client) {
-			wx.showToast({
-				title    : '已发出请求，请稍候',
-				icon     : 'none',
-				duration : 5000
-			});
+          wx.showToast({
+            title: '已发出请求，请稍候',
+            icon: 'none',
+            duration: 5000
+          });
 
           client.subscribe(
-			userId,
+            userId,
             (data) => {
               Utils.log(`client subscribe success. url:${data.url}`);
               resolve(data);
@@ -608,8 +614,8 @@ Page({
             (e) => {
               Utils.log(`client subscribe failed: ${e.code} ${e.reason}`);
               reject(e);
-            });// ,
-			// isUpdate);
+            }); // ,
+          // isUpdate);
         } else {
           reject({
             code: 400,
@@ -625,40 +631,47 @@ Page({
     }).then(data => {
       Utils.log(`subscribe url: ${data.url}`);
 
-	  if (this.hasMedia('player', data.userId)) {
-		// if existing, update property
+      if (this.hasMedia('player', data.userId)) {
+        // if existing, update property
         // change key property to refresh live-player
-        this.updateMedia(data.userId, { url: data.url });
-      } else {  
+        this.updateMedia(data.userId, {
+          url: data.url
+        });
+      } else {
         //if not existing, add new media
-		let ts = new Date().getTime();
+        let ts = new Date().getTime();
 
-		this.addMedia('player', data.userId, data.connectId, `${data.url}`, {
+        this.addMedia('player', data.userId, data.connectId, `${data.url}`, {
           key: ts,
           rotation: data.rotation
-		});
-		
-		let client = this.client;
-		if (!!client) {
-			const player = this.getPlayerComponent(data.connectId);
-			player && player.setMediaStatCB({
-				userId: data.userId,
-				callback: (opts) => {
-					// 
-					const { code, type, userId, message } = opts;
-					client.mediaStat( code, type, userId, message );
-				}
-			});
-		}
-		// 
+        });
+
+        let client = this.client;
+        if (!!client) {
+          const player = this.getPlayerComponent(data.connectId);
+          player && player.setMediaStatCB({
+            userId: data.userId,
+            callback: (opts) => {
+              // 
+              const {
+                code,
+                type,
+                userId,
+                message
+              } = opts;
+              client.mediaStat(code, type, userId, message);
+            }
+          });
+        }
+        // 
       }
       //
     }).catch(e => {
       Utils.log(`subscribe failed: ${e.code} ${e.reason}`);
       wx.showToast({
-        title    : `拉流失败 -- ${JSON.stringify(e)}`,
-        icon     : 'none',
-        duration : 5000
+        title: `拉流失败 -- ${JSON.stringify(e)}`,
+        icon: 'none',
+        duration: 5000
       });
     });
   },
@@ -686,17 +699,17 @@ Page({
   resubscribeAll: function() {
     Utils.log(`resubscribeAll media`);
     new Promise((resolve) => {
-	  // 
-	  let media = this.data.media || [];
-	  // 
+      // 
+      let media = this.data.media || [];
+      // 
       for (let i = 0; i < media.length; i++) {
-		let item = media[i];
-		
-		if (`${item.type}` !== 'player')
-			continue;
+        let item = media[i];
 
-		//
-		this.subscribe(item.uid, true);
+        if (`${item.type}` !== 'player')
+          continue;
+
+        //
+        this.subscribe(item.uid, true);
       }
 
       resolve();
@@ -708,14 +721,14 @@ Page({
   unsubscribeAll: function() {
     Utils.log(`unsubscribeAll media`);
     new Promise((resolve) => {
-	  // 
-	  let media = this.data.media || [];
-	  // 
+      // 
+      let media = this.data.media || [];
+      // 
       for (let i = 0; i < media.length; i++) {
-		let item = media[i];
+        let item = media[i];
 
-		if (`${item.type}` !== 'player')
-			continue;
+        if (`${item.type}` !== 'player')
+          continue;
 
         let client = this.client;
         if (!!client) {
@@ -728,7 +741,7 @@ Page({
 
       this.removeAllMedia('player');
 
-	  resolve();
+      resolve();
     }).catch(e => {
       Utils.log(`unsubscribeAll failed: ${e.code} ${e.reason}`);
     });
@@ -745,42 +758,42 @@ Page({
   },
 
   publish: function(isUpdate) {
-	if (this.data.pushing) {
-		wx.showToast({
-			title    : '当前已推流',
-			icon     : 'none',
-			duration : 3000
-		});
-	
-		return;
-	}
+    if (this.data.pushing) {
+      wx.showToast({
+        title: '当前已推流',
+        icon: 'none',
+        duration: 3000
+      });
 
-	// 最多 7 路
-	if (this.data.media.length >= MAX_USER) {
-		wx.showToast({
-			title    : `已到最大支持路数 -- ${MAX_USER}`,
-			icon     : 'none',
-			duration : 5000
-		});
+      return;
+    }
 
-		return;
-	}
+    // 最多 7 路
+    if (this.data.media.length >= MAX_USER) {
+      wx.showToast({
+        title: `已到最大支持路数 -- ${MAX_USER}`,
+        icon: 'none',
+        duration: 5000
+      });
 
-	let curTS = new Date().getTime();
-	Utils.log(`****** client publish curTS: ${curTS}`);
-	
+      return;
+    }
+
+    let curTS = new Date().getTime();
+    Utils.log(`****** client publish curTS: ${curTS}`);
+
     new Promise((resolve, reject) => {
       if (this.data.connState === 2) {
         // and get my stream publish url
         if (this.canPublsh()) {
           let client = this.client;
           if (!!client) {
-			wx.showToast({
-				title    : '已发出请求，请稍候',
-				icon     : 'none',
-				duration : 5000
-			});
-		
+            wx.showToast({
+              title: '已发出请求，请稍候',
+              icon: 'none',
+              duration: 5000
+            });
+
             client.publish(
               (data) => {
                 Utils.log(`client publish success. url:${data.url}`);
@@ -789,8 +802,8 @@ Page({
               (e) => {
                 Utils.log(`client publish failed: ${e.code} ${e.reason}`);
                 reject(e);
-			  });// ,
-			  // isUpdate);
+              }); // ,
+            // isUpdate);
           } else {
             reject({
               code: 400,
@@ -812,41 +825,61 @@ Page({
     }).then(url => {
       Utils.log(`publish roomId: ${this.roomId}, uid: ${this.uid} cid: ${this.cid} url: ${url}`);
 
-		if (this.hasMedia('pusher', this.uid)) {
-			// if existing, update property
-			// change key property to refresh live-player
-			this.updateMedia(this.uid, { url });
-		}
-		// 
-		const tttPusher = this.getPusherComponent();
-		if (!!tttPusher) {
-			let client = this.client;
-			if (!!client) {
-				// 1. 将 netstatus 日志采集回调 植入 tttPusher 中
-				tttPusher && tttPusher.setMediaStatCB({
-					userId: this.uid,
-					callback: (opts) => {
-					const { code, type, userId, message } = opts;
-				
-					client.mediaStat( code, type, userId, message );
-					}
-				});
-			}
-		
-			tttPusher.start();
-		}
+      if (this.hasMedia('pusher', this.uid)) {
+        // if existing, update property
+        // change key property to refresh live-player
+        this.updateMedia(this.uid, {
+          url
+        });
+      } else {
+        // first time init, add pusher media to view		
+        let ts = new Date().getTime();
 
-        //
-        this.setData({ pushing : true });
+        this.addMedia('pusher', this.uid, this.cid, url, {
+          key: ts
+        });
+        // 
+      }
+      // 
+
+      /*
+      const tttPusher = this.getPusherComponent();
+      if (!!tttPusher) {
+      	let client = this.client;
+      	if (!!client) {
+      		// 1. 将 netstatus 日志采集回调 植入 tttPusher 中
+      		tttPusher && tttPusher.setMediaStatCB({
+      			userId: this.uid,
+      			callback: (opts) => {
+      			const { code, type, userId, message } = opts;
+      		
+      			client.mediaStat( code, type, userId, message );
+      			}
+      		});
+      	}
+		
+      	tttPusher.start();
+      }
+      */
+
+      //
+      this.setData({
+        pushing: true
+      });
     }).catch(e => {
-	  Utils.log(`publish failed: ${e.code} ${e.reason}`);
-	  // 
-	  // this.removeMedia(this.uid);
-	  // 
+      Utils.log(`publish failed: ${e.code} ${e.reason}`);
+      // 
+      this.removeMedia(this.uid);
+      // 
       wx.showToast({
-        title    : `失败 -- ${e.reason}`,
-        icon     : 'none',
-        duration : 5000
+        title: `提示 -- ${e.reason}`,
+        icon: 'none',
+        duration: 5000
+      });
+
+      //
+      this.setData({
+        pushing: false
       });
     });
   },
@@ -854,23 +887,29 @@ Page({
   unpublish: function() {
     Utils.log(`client unpublish`);
     new Promise((resolve, reject) => {
-	  // 
+      // 
+      /*
 	  if (this.hasMedia('pusher', this.uid)) {
 		// if existing, update property
 		// change key property to refresh live-player
 		this.updateMedia(this.uid, { url : '' });
 	  }
+	  */
 
-	  if (this.data.pushing) {
-		// 
-		const tttPusher = this.getPusherComponent();
-		if (!!tttPusher) {
-			tttPusher.stop();
-		}
-		// this.removeMedia(this.uid);
-		//
-		this.setData({ pushing : false });
-	  }
+      if (this.data.pushing) {
+        // 
+        /*
+        const tttPusher = this.getPusherComponent();
+        if (!!tttPusher) {
+        	tttPusher.stop();
+        }
+        */
+        this.removeMedia(this.uid);
+        //
+        this.setData({
+          pushing: false
+        });
+      }
 
       // 
       if (this.data.connState === 2) {
@@ -896,19 +935,19 @@ Page({
    */
   onPullFailed: function(e) {
     Utils.log(`ttt-player failed!!!. player failed: ${JSON.stringify(e.detail.errMsg)}`);
-	//
+    //
 
     this.unsubscribe(e.detail.userId, false);
 
-	let msg = JSON.stringify(e.detail.errMsg);
-	if (e.detail.errCode === -2301) {
-		msg = '拉流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启拉流'
-	}
+    let msg = JSON.stringify(e.detail.errMsg);
+    if (e.detail.errCode === -2301) {
+      msg = '拉流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启拉流'
+    }
 
     wx.showToast({
-      title    : `小程序 player 报错 -- ${msg}`,
-      icon     : 'none',
-      duration : 5000
+      title: `小程序 player 报错 -- ${msg}`,
+      icon: 'none',
+      duration: 5000
     });
   },
 
@@ -921,23 +960,22 @@ Page({
     //
     this.unpublish();
 
-	/*
+    /*
     // 重试
     setTimeout(() => {
       this.publish();
 	}, 1000);
 	*/
 
-	let msg = JSON.stringify(e.detail.errMsg);
-	if (e.detail.errCode === -1307)
-	{
-		msg = '推流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启推流'
-	}
+    let msg = JSON.stringify(e.detail.errMsg);
+    if (e.detail.errCode === -1307) {
+      msg = '推流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启推流'
+    }
 
     wx.showToast({
-      title    : `小程序 pusher 报错 -- errCode: ${e.detail.errCode} errMsg: ${msg}`,
-      icon     : 'none',
-      duration : 5000
+      title: `小程序 pusher 报错 -- errCode: ${e.detail.errCode} errMsg: ${msg}`,
+      icon: 'none',
+      duration: 5000
     });
   },
 
@@ -946,9 +984,9 @@ Page({
     // 
     if (!this.data.selectUserId) {
       wx.showToast({
-        title    : '请从左侧列表中选择 userId',
-        icon     : 'none',
-        duration : 5000
+        title: '请从左侧列表中选择 userId',
+        icon: 'none',
+        duration: 5000
       });
       return;
     }
@@ -959,21 +997,21 @@ Page({
         if (res.confirm) {
           // 
           let client = this.client;
-		  if (!client)
-			return;
-		  client.kickout(
-			this.data.selectUserId,
-			() => {
-				Utils.log('client kickout success.');
-			},
-			(e) => {
-				Utils.log(`client kickout failed: ${e.code} ${e.reason}`);
-				wx.showToast({
-					title    : `踢用户失败 -- ${e.code} ${e.reason}`,
-					icon     : 'none',
-					duration : 5000
-				});
-			});
+          if (!client)
+            return;
+          client.kickout(
+            this.data.selectUserId,
+            () => {
+              Utils.log('client kickout success.');
+            },
+            (e) => {
+              Utils.log(`client kickout failed: ${e.code} ${e.reason}`);
+              wx.showToast({
+                title: `提示 -- ${e.code} ${e.reason}`,
+                icon: 'none',
+                duration: 5000
+              });
+            });
         }
       }
     });
@@ -984,18 +1022,22 @@ Page({
    * 静音回调
    */
   onMuteLocalClick: function() {
-    this.setData({ muted : !this.data.muted });
+    this.setData({
+      muted: !this.data.muted
+    });
 
-	Utils.log(`muted : ${this.data.muted}`);
-	
-	// 
-	// this.onEnableCamera();
+    Utils.log(`muted : ${this.data.muted}`);
+
+    // 
+    // this.onEnableCamera();
   },
 
   onEnableCamera: function() {
-	  this.setData({ enableCamera : !this.data.enableCamera });
+    this.setData({
+      enableCamera: !this.data.enableCamera
+    });
 
-	  Utils.log(`enableCamera : ${this.data.enableCamera}`);
+    Utils.log(`enableCamera : ${this.data.enableCamera}`);
   },
 
   /**
@@ -1013,7 +1055,9 @@ Page({
    */
   onMakeupClick: function() {
     let beauty = this.data.beauty == 5 ? 0 : 5;
-    this.setData({ beauty : beauty });
+    this.setData({
+      beauty: beauty
+    });
   },
 
   /**
@@ -1036,10 +1080,13 @@ Page({
       console.log(`uploadLogs -- ${part} : ${content}`);
       // 
       tasks.push(new LogUploaderTask(content, this.roomId, part++, ts, this.uid, this.cid));
-	} while (logs.length > sliceSize)
-	
-    wx.showLoading({ title: '0%', mask: true });
-	
+    } while (logs.length > sliceSize)
+
+    wx.showLoading({
+      title: '0%',
+      mask: true
+    });
+
     LogUploader.off("progress").on("progress", e => {
       let remain = e.remain;
       let total = e.total;
@@ -1047,8 +1094,8 @@ Page({
       if (remain === 0) {
         wx.hideLoading();
         wx.showToast({
-			title : '上传成功'
-		});
+          title: '上传成功'
+        });
       } else {
         wx.showLoading({
           mask: true,
@@ -1059,89 +1106,95 @@ Page({
     LogUploader.on("error"), e => {
       wx.hideLoading();
       wx.showToast({
-		  title : `上传失败 -- ${e}`
-		});
+        title: `上传失败 -- ${e}`
+      });
     }
     LogUploader.scheduleTasks(tasks);
   },
 
   onMuteClick: function() {
-	let client = this.client;
-	if (!client) {
-		return;
-	}
+    let client = this.client;
+    if (!client) {
+      return;
+    }
 
-	var muteRemote = !this.data.muteRemote;
-	this.setData({ muteRemote : muteRemote });
+    var muteRemote = !this.data.muteRemote;
+    this.setData({
+      muteRemote: muteRemote
+    });
 
-	if (muteRemote) {
-		client.mute(this.data.selectUserId,
-			() => {
-				Utils.log('client mute success.');
-			},
-			(e) => {
-				Utils.log(`client mute failed: ${e.code} ${e.reason}`);
-				wx.showToast({
-					title    : `${e.code} ${e.reason}`,
-					icon     : 'none',
-					duration : 5000
-				});
-			});
-	} else {
-		client.unmute(this.data.selectUserId,
-			() => {
-				Utils.log('client unmute success.');
-			},
-			(e) => {
-				Utils.log(`client unmute failed: ${e.code} ${e.reason}`);
-				wx.showToast({
-					title    : `${e.code} ${e.reason}`,
-					icon     : 'none',
-					duration : 5000
-				});
-			});
-	}
+    if (muteRemote) {
+      client.mute(this.data.selectUserId,
+        () => {
+          Utils.log('client mute success.');
+        },
+        (e) => {
+          Utils.log(`client mute failed: ${e.code} ${e.reason}`);
+          wx.showToast({
+            title: `${e.code} ${e.reason}`,
+            icon: 'none',
+            duration: 5000
+          });
+        });
+    } else {
+      client.unmute(this.data.selectUserId,
+        () => {
+          Utils.log('client unmute success.');
+        },
+        (e) => {
+          Utils.log(`client unmute failed: ${e.code} ${e.reason}`);
+          wx.showToast({
+            title: `${e.code} ${e.reason}`,
+            icon: 'none',
+            duration: 5000
+          });
+        });
+    }
   },
 
   onSwitchMode: function() {
     var showTips = !this.data.showHDTips;
-	this.setData({ showHDTips : showTips });
+    this.setData({
+      showHDTips: showTips
+    });
   },
 
   /**
    * 是否开启 debug
    */
   onDebugClick: function() {
-	this.setData({ debug: !this.data.debug });
-	
-	// 
-	this.injectMediaStat();
+    this.setData({
+      debug: !this.data.debug
+    });
 
-	// 
-	this.onUpload();
+    // 
+    this.injectMediaStat();
+
+    // 
+    this.onUpload();
   },
 
   onUpload: function() {
-	wx.getStorageInfo({
-		success (res) {
-		  console.log(res.keys);
-		  console.log(res.currentSize);
-		  console.log(res.limitSize);
+    wx.getStorageInfo({
+      success(res) {
+        console.log(res.keys);
+        console.log(res.currentSize);
+        console.log(res.limitSize);
 
-		  for (let i = 0; i < res.keys.length; i++) {
-			let item = res.keys[i];
-			wx.getStorage({
-				key: item,
-				success (res) {
-				  console.log(`--- --- --- ${res.data}`);
-				}
-			  });
-			}
-		}
-	  });
-	  wx.clearStorage();
-	  //
-	/*
+        for (let i = 0; i < res.keys.length; i++) {
+          let item = res.keys[i];
+          wx.getStorage({
+            key: item,
+            success(res) {
+              console.log(`--- --- --- ${res.data}`);
+            }
+          });
+        }
+      }
+    });
+    wx.clearStorage();
+    //
+    /*
     let page = this;
 
     wx.showModal({
@@ -1164,25 +1217,30 @@ Page({
     const systemInfo = app.globalData.systemInfo;
     // 64 is the height of bottom toolbar
     // 120 is the height of input area 
-    this.layouter = new Layouter(systemInfo.windowWidth, systemInfo.windowHeight - 64 - 120);
+    this.layouter = new Layouter(systemInfo.windowWidth, systemInfo.windowHeight - 80 - 50);
   },
 
   /**
    * 向 ttt-pusher，ttt-player 注入 媒体传输统计 的回调函数
    */
   injectMediaStat: function() {
-	let client = this.client;
-	if (!client) {
-		return;
-	}
+    let client = this.client;
+    if (!client) {
+      return;
+    }
 
     // 1. 将 netstatus 日志采集回调 植入 tttPusher 中
     const tttPusher = this.getPusherComponent();
     tttPusher && tttPusher.setMediaStatCB({
       userId: this.uid,
       callback: (opts) => {
-        const { code, type, userId, message } = opts;
-        client.mediaStat( code, type, userId, message );
+        const {
+          code,
+          type,
+          userId,
+          message
+        } = opts;
+        client.mediaStat(code, type, userId, message);
       }
     });
 
@@ -1195,8 +1253,13 @@ Page({
       player && player.setMediaStatCB({
         userId: this.uid,
         callback: (opts) => {
-          const { code, type, userId, message } = opts;
-          client.mediaStat( code, type, userId, message );
+          const {
+            code,
+            type,
+            userId,
+            message
+          } = opts;
+          client.mediaStat(code, type, userId, message);
         }
       });
     }
@@ -1212,14 +1275,14 @@ Page({
       // Create Client
       Utils.log(`Client`);
 
-	  // 第三个参数用来表明是否为 测试环境 -- true：测试环境；false：生产环境
+      // 第三个参数用来表明是否为 测试环境 -- true：测试环境；false：生产环境
       client = new TTTMAEngine.Client(APPID, uid, false);
       // store TTT Engine 
       this.client = client;
       if (!!client) {
-		// 
-		client.setLogLevel('LOG_DEBUG');
-		// 
+        // 
+        client.setLogLevel('LOG_DEBUG');
+        // 
         client.setRole(
           this.role,
           () => {},
@@ -1229,9 +1292,13 @@ Page({
           APPID,
           uid,
           (e) => {
-			// 
-			const { logClues } = e;
-			this.setData({ logClues : logClues });
+            // 
+            const {
+              logClues
+            } = e;
+            this.setData({
+              logClues: logClues
+            });
 
             Utils.log(`client init success`);
 
@@ -1245,9 +1312,15 @@ Page({
               uid,
               (data) => {
                 // store the conn state.
-                this.setData({ connState : 2 });
+                this.setData({
+                  connState: 2
+                });
 
-                const { connectId, pushUrl, peers } = data;
+                const {
+                  connectId,
+                  pushUrl,
+                  peers
+                } = data;
 
                 this.cid = connectId;
 
@@ -1265,10 +1338,10 @@ Page({
             Utils.log(`client init failed: ${e} ${e.code} ${e.reason}`);
 
             reject(e);
-		  }// ,
-		  // disAppAuth : true, // 
-          // disIploc: true, //
-          // auServer: "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau"
+          },
+          true, // disAppAuth
+          true, // disIploc
+          "wss://miniapp1.3ttech.cn/miniappau" // "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau" // auServer
         );
       } else {
         reject({
@@ -1337,31 +1410,31 @@ Page({
 
     sei.pos.push(position);
 
-	Utils.log(`setSEI users: ${JSON.stringify(users)}`);
+    Utils.log(`setSEI users: ${JSON.stringify(users)}`);
     // for 列表中其他用户位置
     for (let i = 0; i < users.length; i++) {
       let item = users[i];
 
-	  let position = {
+      let position = {
         id: item,
         h: 0.25,
         w: 0.33,
         x: ((sei.pos.length - 1) % 3) * 0.33,
         y: parseInt((sei.pos.length - 1) / 3) * 0.25 + 0.5,
         z: 1
-	  };
-	  
-	  if (sei.pos.filter(it => {
-		return `${it.id}` === `${item}`
-	  }).length > 0)
-	    continue;
+      };
 
-		Utils.log(`setSEI for user: ${item} position: ${JSON.stringify(position)}`);
+      if (sei.pos.filter(it => {
+          return `${it.id}` === `${item}`
+        }).length > 0)
+        continue;
+
+      Utils.log(`setSEI for user: ${item} position: ${JSON.stringify(position)}`);
 
       sei.pos.push(position);
     }
 
-	Utils.log(`setSEI sei.pos: ${JSON.stringify(sei.pos)} sei: ${JSON.stringify(sei)}`);
+    Utils.log(`setSEI sei.pos: ${JSON.stringify(sei.pos)} sei: ${JSON.stringify(sei)}`);
 
     let client = this.client;
     if (!!client) {
@@ -1387,9 +1460,9 @@ Page({
   },
 
   stopAllMedia: function() {
-	this.unpublish();
-	// 
-	this.unsubscribeAll();
+    this.unpublish();
+    // 
+    this.unsubscribeAll();
   },
 
   /**
@@ -1418,93 +1491,96 @@ Page({
       "session-status",
       (e) => {
         Utils.log(`event: session-status -- uid: ${e.uid} cid: ${e.cid} status: ${e.status}`);
-		// 
-		let loginStatus = '';
-		if (e.code == 3000) {
-			loginStatus = '正在重连'
-		} else if (e.code == 200) {
-			loginStatus = '已连接'
-		} else if (e.code == 210) {
-			loginStatus = '登录在线'
-		} else if (e.code == 300) {
-			loginStatus = '已连接'
-		} else if (e.code == 310) {
-			loginStatus = '登录在线'
-		} else if (e.code == 1000) {
-			loginStatus = '最终失败'
-		} else
-		{
-			loginStatus = '未知'
-		}
-
-		this.setData({
-			loginStatus
-		});
-
-		// 已登录在线
-		if (e.code == 310 || e.code == 210) {
-			this.setData({ connState : 2 });
-
-			// 此处仅仅是清空 -- 因为 sdk 内部随后会将所有 users ，通过 user-online 通知上来
-			this.setData({
-				userIds     : [],
-				userTotal   : 0
-			});
-		}
-
-		// 当前断网进入重连状态 -- 
-		if (e.code == 3000) {
-			this.setData({ connState : 0 });
-			// 
-			// 关闭所有 media
-			this.stopAllMedia();
-		}
-
-		if (e.code == 310) {
-			/* 暂不再执行 自动 重新推流
-			// 重连且登录成功
-			// 尝试将之前的 推流/拉流 自动恢复
-			if (this.data.pushing) {
-				this.publish(true);
-			}
-			*/
-			// 
-			this.resubscribeAll();
+        // 
+        let loginStatus = '';
+        if (e.code == 3000) {
+          loginStatus = '正在重连'
+        } else if (e.code == 200) {
+          loginStatus = '已连接'
+        } else if (e.code == 210) {
+          loginStatus = '登录在线'
+        } else if (e.code == 300) {
+          loginStatus = '已连接'
+        } else if (e.code == 310) {
+          loginStatus = '登录在线'
+        } else if (e.code == 1000) {
+          loginStatus = '最终失败'
+        } else {
+          loginStatus = '未知'
         }
-		wx.showToast({
-			title    : `${loginStatus}`,
-            // title: `session-status：${e.status}`,
-            icon     : 'none',
-            duration : 5000
+
+        this.setData({
+          loginStatus
+        });
+
+        // 已登录在线
+        if (e.code == 310 || e.code == 210) {
+          this.setData({
+            connState: 2
           });
+
+          // 此处仅仅是清空 -- 因为 sdk 内部随后会将所有 users ，通过 user-online 通知上来
+          this.setData({
+            userIds: [],
+            userTotal: 0
+          });
+        }
+
+        // 当前断网进入重连状态 -- 
+        if (e.code == 3000) {
+          this.setData({
+            connState: 0
+          });
+          // 
+          // 关闭所有 media
+          this.stopAllMedia();
+        }
+
+        if (e.code == 310) {
+          /* 暂不再执行 自动 重新推流
+          // 重连且登录成功
+          // 尝试将之前的 推流/拉流 自动恢复
+          if (this.data.pushing) {
+          	this.publish(true);
+          }
+          */
+          // 
+          this.resubscribeAll();
+        }
+        wx.showToast({
+          title: `${loginStatus}`,
+          // title: `session-status：${e.status}`,
+          icon: 'none',
+          duration: 5000
+        });
       });
 
     client.on(
       "user-online",
       (userData) => {
-		Utils.log(`event: user-online uid: ${userData.userId} role: ${userData.role} ueType: ${userData.ueType}`);
-		
-		// 
-		let userIds = this.data.userIds || [];
-		
-		userIds.push(`${userData.userId}`);
-		//
-		let userTotal = userIds.length;
+        Utils.log(`event: user-online uid: ${userData.userId} role: ${userData.role} ueType: ${userData.ueType}`);
 
-		let index = 0;
-		let selectUserId = userIds[0];
-		this.setData({
-			userIds      : userIds,
-			userTotal,
-			selectIndex  : index,
-			selectUserId : selectUserId
-		});
-		//
+        // 
+        let userIds = this.data.userIds || [];
 
-		// 如果是 主播， 才执行 setSEI
-		if (this.role == 1) {
-			this.setSEI(userIds, 1);
-		}
+        userIds.push(`${userData.userId}`);
+        //
+        let userTotal = userIds.length;
+
+        let index = 0;
+        let selectUserId = userIds[0];
+        this.setData({
+          userIds: userIds,
+          userTotal,
+          selectIndex: index,
+          selectUserId: selectUserId
+        });
+        //
+
+        // 如果是 主播， 才执行 setSEI
+        if (this.role == 1) {
+          this.setSEI(userIds, 1);
+        }
 
         Utils.log(`event: user-online -- userIds: ${JSON.stringify(userIds)}`);
       });
@@ -1522,35 +1598,35 @@ Page({
           this.removeMedia(userId);
         }
 
-		// 
-		let userIds = this.data.userIds || [];
-		userIds = userIds.filter(item => {
-			return `${item}` != `${userId}`
-		});
+        // 
+        let userIds = this.data.userIds || [];
+        userIds = userIds.filter(item => {
+          return `${item}` != `${userId}`
+        });
 
-		// 如果是 主播， 才执行 setSEI
-		if (this.role == 1) {
-			this.setSEI(userIds, 1);
-		}
+        // 如果是 主播， 才执行 setSEI
+        if (this.role == 1) {
+          this.setSEI(userIds, 1);
+        }
 
-		Utils.log(`event: user-offline -- userIds: ${JSON.stringify(userIds)}`);
+        Utils.log(`event: user-offline -- userIds: ${JSON.stringify(userIds)}`);
 
-		// 
-		let index = 0;
-		let selectUserId = 0;
+        // 
+        let index = 0;
+        let selectUserId = 0;
 
-		let userTotal = userIds.length;
-		if (userTotal > 0) {
-			selectUserId = userIds[0];
-			index = 0;
-		}
-		
-		this.setData({
-			userIds      : userIds,
-			userTotal,
-			selectIndex  : index,
-			selectUserId : selectUserId
-		});
+        let userTotal = userIds.length;
+        if (userTotal > 0) {
+          selectUserId = userIds[0];
+          index = 0;
+        }
+
+        this.setData({
+          userIds: userIds,
+          userTotal,
+          selectIndex: index,
+          selectUserId: selectUserId
+        });
       });
 
     /**
@@ -1600,12 +1676,14 @@ Page({
         Utils.log(`event: kickout -- uid: ${uid}, reason: ${reason}`);
 
         // update the conn state.
-        this.setData({ connState: 0 });
+        this.setData({
+          connState: 0
+        });
 
-		// 关闭所有 media
-		this.stopAllMedia();
+        // 关闭所有 media
+        this.stopAllMedia();
 
-		// 
+        // 
         // destroy 
         client.destroy();
 
@@ -1618,9 +1696,9 @@ Page({
         setTimeout(() => {
           wx.reLaunch({
             url: '../index/index'
-		  });
+          });
 
-		  // this.navigateIndex();
+          // this.navigateIndex();
         }, 5000);
       });
 
@@ -1633,10 +1711,12 @@ Page({
         Utils.log('event: disconnected');
 
         // update the conn state.
-        this.setData({ connState : 0 });
+        this.setData({
+          connState: 0
+        });
 
-		// 关闭所有 media
-		this.stopAllMedia();
+        // 关闭所有 media
+        this.stopAllMedia();
 
         // destroy 
         client.destroy();
@@ -1650,9 +1730,9 @@ Page({
         setTimeout(() => {
           wx.reLaunch({
             url: '../index/index'
-		  });
+          });
 
-		  // this.navigateIndex();
+          // this.navigateIndex();
         }, 5000);
       });
 

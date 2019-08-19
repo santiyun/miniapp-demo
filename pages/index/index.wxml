@@ -39,19 +39,19 @@
 		-->
         <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">互动房间</button>
       </view>
-	  <!--
+      <!--
       <view class="rowWrapper flex-center-row">
         <button plain="true" bindtap="onTestClick" class="commonBtn">推拉流测试</button>
       </view>
 	  -->
     </view>
     <view class="footer flex-center-column">
-		<checkbox-group bindchange="checkboxChangeDemoMode">
-          <label class="checkbox" wx:for="{{chkDemoMode}}">
-            <checkbox value="{{item.name}}" checked="{{item.checked}}" />
-            <text class="h2">{{item.display}}</text>
-          </label>
-        </checkbox-group>
+      <checkbox-group bindchange="checkboxChangeDemoMode">
+        <label class="checkbox" wx:for="{{chkDemoMode}}">
+          <checkbox value="{{item.name}}" checked="{{item.checked}}" />
+          <text class="h2">{{item.display}}</text>
+        </label>
+      </checkbox-group>
       <image class="logo-avatar" src="./Resources/logo-white.png" background-size="cover"></image>
       <text class="logo-name">三体云</text>
       <text>Powered by 3ttech. {{masdkVersion}}</text>

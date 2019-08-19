@@ -22,48 +22,48 @@ Page({
     }, {
       name: 'PARTICIPANT',
       display: '副播',
+      checked: 'true',
       value: 2
     }, {
       name: 'AUDIENCE',
       display: '观众',
-      value: 3,
-      checked: 'true'
-	}],
-	// demo mode
-	// 0 -- 简易模式: 默认用户角色为 观众；用户ID自动随机生成；房间号默认为 999；
-	// 1 -- 专家模式: 用户角色可选；用户ID手动输入；房间号手动输入；
-	demoMode: 0, // 
-	// 
+      value: 3
+    }],
+    // demo mode
+    // 0 -- 简易模式: 默认用户角色为 观众；用户ID自动随机生成；房间号默认为 999；
+    // 1 -- 专家模式: 用户角色可选；用户ID手动输入；房间号手动输入；
+    demoMode: 0, // 
+    // 
     chkDemoMode: [{
       name: 'DEMO_MODE',
       display: '简易模式',
       checked: true
     }],
     // 用户角色
-    userRole: 3,
+    userRole: 2,
     // 
     chkPushOn: [{
       name: 'PUSH_STREAM',
       display: '自动推流',
-      checked: false
+      checked: true
     }],
     chkAutoPull: [{
       name: 'AUTO_SUBSCRIBE',
       display: '自动拉流',
-      checked: false
+      checked: true
     }],
     // 入房间后，是否自动推流
-    isAutoPush: false,
+    isAutoPush: true,
     // 入房间后，是否自动拉流
-    isAutoPull: false
+    isAutoPull: true
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function(options) {
-	this.roomId = '999';
-	this.userId = '';
+    this.roomId = '999';
+    this.userId = '';
 
     // 
     Utils.log(`index page onLoad: ${JSON.stringify(TTTMAEngine.getVersion())}`);
@@ -222,14 +222,14 @@ Page({
   },
 
   onJoin: function() {
-	let demoMode = this.data.demoMode;
-	if (this.data.demoMode == 0) {
-		// 自动随机生成 userId
-		this.userId = `${Math.floor(Math.random() * 1000000)}`;
-	}
+    let demoMode = this.data.demoMode;
+    if (this.data.demoMode == 0) {
+      // 自动随机生成 userId
+      this.userId = `${Math.floor(Math.random() * 1000000)}`;
+    }
 
-	let roomId = this.roomId || "";
-	let userId = this.userId || "";
+    let roomId = this.roomId || "";
+    let userId = this.userId || "";
 
     let t = (typeof userId);
 
@@ -240,21 +240,21 @@ Page({
         duration: 2000
       });
     } else {
-	  if (roomId === 'test') {
-		this.onTestClick();
-	  } else {
-		//
-		let role = this.data.userRole;
-		let autoPull = this.data.isAutoPull;
-		let autoPush = this.data.isAutoPush;
-		
-		roomId = parseInt(roomId);
-		userId = parseInt(userId);
+      if (roomId === 'test') {
+        this.onTestClick();
+      } else {
+        //
+        let role = this.data.userRole;
+        let autoPull = this.data.isAutoPull;
+        let autoPush = this.data.isAutoPush;
 
-		wx.navigateTo({
-			url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
-		});
-	  }
+        roomId = parseInt(roomId);
+        userId = parseInt(userId);
+
+        wx.navigateTo({
+          url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
+        });
+      }
     }
   },
 

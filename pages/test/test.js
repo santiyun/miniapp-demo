@@ -46,19 +46,19 @@ Page({
       keepScreenOn: true
     });
     // store layouter control
-	this.layouter = null;
-	
-	// 
-	let ts = new Date().getTime();
+    this.layouter = null;
+
+    // 
+    let ts = new Date().getTime();
     this.addMedia('pusher', 'miniapp-3t-stream-pusher', this.data.pushUrl, {
       key: ts
-	});
-	this.addMedia('player', 'miniapp-3t-stream-player', this.data.pullUrl, {
-		key: ts,
-		rotation: 0
-	  });
-	
-	Utils.log(`media list: ${JSON.stringify(this.data.media)}`);
+    });
+    this.addMedia('player', 'miniapp-3t-stream-player', this.data.pullUrl, {
+      key: ts,
+      rotation: 0
+    });
+
+    Utils.log(`media list: ${JSON.stringify(this.data.media)}`);
   },
 
   /**
@@ -79,8 +79,8 @@ Page({
       if (item.type === 'pusher') {
         //return for pusher
         return;
-	  }
-	  // 
+      }
+      // 
       let player = this.getPlayerComponent();
       if (!player) {
         Utils.log(`player component no longer exists`, "error");
@@ -317,37 +317,37 @@ Page({
     context.start();
     */
     let ts = new Date().getTime();
-	this.updateMedia('miniapp-3t-stream-pusher', {
-		url: this.data.pushUrl,
-		key: ts
-	});
+    this.updateMedia('miniapp-3t-stream-pusher', {
+      url: this.data.pushUrl,
+      key: ts
+    });
 
-	const tttPusher = this.getPusherComponent();
-	tttPusher.start();
+    const tttPusher = this.getPusherComponent();
+    tttPusher.start();
   },
 
   onStopPushing: function(e) {
-	/*
+    /*
     let context = wx.createLivePusherContext(this);
 	context.stop();
 	*/
-	
-	const tttPusher = this.getPusherComponent();
-	tttPusher.stop();
+
+    const tttPusher = this.getPusherComponent();
+    tttPusher.stop();
   },
-  
+
   /**
    * 推流状态更新回调
    * 向 CDN 推流失败时，回调
    */
   onPushFailed: function(e) {
     Utils.log(`ttt-pusher failed!!!. pusher failed: ${JSON.stringify(e.detail.errMsg)}`);
-	// 
-	
-	let msg = JSON.stringify(e.detail.errMsg);
-	if (e.detail.errCode === -1307) {
-		msg = '推流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启推流'
-	}
+    // 
+
+    let msg = JSON.stringify(e.detail.errMsg);
+    if (e.detail.errCode === -1307) {
+      msg = '推流失败：到 CDN 网络断连，且经多次重连抢救无效，更多重试请自行重启推流'
+    }
 
     wx.showToast({
       title: `小程序报错. pusher failed. errCode: ${e.detail.errCode} errMsg: ${msg}`,
@@ -358,18 +358,18 @@ Page({
 
   onStartPlaying: function(e) {
     let ts = new Date().getTime();
-	this.updateMedia('miniapp-3t-stream-player', {
-		url: this.data.pullUrl,
-		key: ts
-	});
-	
-	const tttPlayer = this.getPlayerComponent();
-	tttPlayer.start();
+    this.updateMedia('miniapp-3t-stream-player', {
+      url: this.data.pullUrl,
+      key: ts
+    });
+
+    const tttPlayer = this.getPlayerComponent();
+    tttPlayer.start();
   },
 
   onStopPlaying: function(e) {
-	const tttPlayer = this.getPlayerComponent();
-	tttPlayer.stop();
+    const tttPlayer = this.getPlayerComponent();
+    tttPlayer.stop();
   },
 
   onPause: function() {

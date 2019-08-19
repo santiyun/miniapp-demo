@@ -2,52 +2,60 @@
 <view id="main" class="content base-bg flex-center-column">
   <view id="video-container" class="video-container n{{totalUser}}">
     <block wx:for="{{media}}" wx:key="key">
-      <ttt-pusher wx:if="{{item.type === 'pusher' && !item.holding}}" id="rtc-pusher" name="{{item.uid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" url="{{item.url}}" enableCamera="{{enableCamera}}" muted="{{muted}}" beauty="{{beauty}}" debug="{{debug}}" bindpushfailed="onPushFailed">
+      <ttt-pusher wx:if="{{item.type === 'pusher' && !item.holding}}" id="rtc-pusher" name="{{item.uid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" url="{{item.url}}" enableCamera="{{enableCamera}}"
+        muted="{{muted}}" beauty="{{beauty}}" debug="{{debug}}" bindpushfailed="onPushFailed">
       </ttt-pusher>
-      <ttt-player wx:if="{{item.type === 'player' && !item.holding}}" id="rtc-player-{{item.cid}}" name="{{item.uid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}" bindpullfailed="onPullFailed">
+      <ttt-player wx:if="{{item.type === 'player' && !item.holding}}" id="rtc-player-{{item.cid}}" name="{{item.uid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}"
+        bindpullfailed="onPullFailed">
       </ttt-player>
     </block>
   </view>
 
-  <view style="border-top: 1px solid rgba(0, 0, 0, 0.1); display: inline-block; width: 100%; height: 45px; position: absolute; left: 10px; bottom: 145px; right: 215px">
+  <view style="border-top: 1px solid rgba(0, 0, 0, 0.1); display: inline-block; width: 100%; height: 45px; position: absolute; left: 10px; bottom: 80px;">
     <text class="h2">log trace id：{{logClues}}\nlogin status：{{loginStatus}}</text>
   </view>
 
-  <view style="border-top: 1px solid rgba(0, 0, 0, 0.1); display: inline-block; width: 140px; height: 60px; position: absolute; left: 10px; bottom: 80px">
+  <!--
+  <view style="border-top: 1px solid rgba(0, 0, 0, 0.1); display: inline-block; width: 100%; height: 60px; position: absolute; left: 10px; bottom: 80px">
     <picker bindchange="bindPickerChange" value="{{selectIndex}}" range="{{userIds}}">
       <view class="picker">
         <text class="h2">列表内用户数：{{userTotal}}\n请选择用户：{{userIds[selectIndex]}}</text>
       </view>
     </picker>
-  </view>
 
-  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; right: 140px">
+  <view style="display: inline-block; width:30px; height: 50px; position: absolute; top: 10px; right: 140px">
     <image class="common_button" src="./Resources/pull.png" bindtap='onSubscribeClick'></image>
     <view class='common_text'>拉 流</view>
   </view>
-  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; ; right: 80px">
+  <view style="display: inline-block; width:30px; height: 50px; position: absolute; top: 10px; ; right: 80px">
     <image class="common_button" src="./Resources/pull-dis.png" bindtap='onUnsubscribeClick'></image>
     <view class='common_text'>停拉流</view>
   </view>
-  <view style="display: inline-block; width:30px; height: 50px; position: absolute; bottom: 80px; ; right: 20px">
+  <view style="display: inline-block; width:30px; height: 50px; position: absolute; top: 10px; ; right: 20px">
     <image class="common_button" src="./Resources/kickout.png" bindtap='onKickoutClick'></image>
     <view class='common_text'>踢 出</view>
   </view>
+  </view>
+  -->
 
+  <!--
   <cover-view style="width:65px; height: 115px; position: absolute; bottom: 55px; margin-left: calc(50% - 32px)" hidden='{{!showHDTips}}'>
     <cover-image src="./Resources/hd_tips.png"></cover-image>
     <cover-view style="width:100%; font-size:10px; color: #ffffff;position:absolute;bottom:20px;margin-left:calc(50% - 32px);text-align: center;" data-mode="SD" bindtap='onModeClick'>标清</cover-view>
     <cover-view style="width:100%; font-size:10px; color: #ffffff;position:absolute;bottom:55px;margin-left:calc(50% - 32px);text-align: center;" data-mode="HD" bindtap='onModeClick'>高清</cover-view>
     <cover-view style="width:100%; font-size:10px; color: #ffffff;position:absolute;bottom:90px;margin-left:calc(50% - 32px);text-align: center;" data-mode="FHD" bindtap='onModeClick'>超清</cover-view>
   </cover-view>
+  -->
 
   <view class="footer flex-center-column">
     <!-- 水平方向的按钮 -->
     <view style="width:100%; height: 50px; position:absolute;bottom:5px;">
+      <!--
       <view class='bottom_box'>
         <image class="bottom_button" src="./Resources/{{pushing?'unpush':'push'}}.png" bindtap='onPublishClick'></image>
         <view class='bottom_text'>{{pushing?'停推流':'开推流'}}</view>
       </view>
+	  -->
       <view class='bottom_box'>
         <image class="bottom_button" src="Resources/switch-cam.png" bindtap='onSwitchCameraClick'></image>
         <view class='bottom_text'>切换</view>
@@ -80,7 +88,7 @@
         <image class="bottom_button" src="./Resources/{{debug?'log-dis':'log'}}.png" bindtap='onDebugClick'></image>
         <view class='bottom_text'>{{debug?'关调试':'开调试'}}</view>
       </view>
-	  <!--
+      <!--
       <view class='bottom_box'>
         <image class="bottom_button" src="./Resources/upload.png" bindtap='onUpload'></image>
         <view class='bottom_text'>传日志</view>
