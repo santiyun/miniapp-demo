@@ -45,7 +45,7 @@ Page({
      * }
      */
     media: [],
-    userIds: [], // 当前房间内的用户列表
+    userIds: [], // 当前通道内的用户列表
     userTotal: 0,
     logClues: '', // 日志跟踪用
     loginStatus: '', // 当前登录状态
@@ -174,7 +174,7 @@ Page({
         let userIds = this.data.userIds || [];
         Utils.log(`init TTT Engine ok. userIds: ${JSON.stringify(userIds)}`);
 
-        // 如果是 主播， 才执行 setSEI
+        // role 为 1， 才执行 setSEI
         if (this.role == 1) {
           this.setSEI(userIds, 1);
         }
@@ -501,7 +501,7 @@ Page({
   onLeaveClick: function() {
     wx.showModal({
       title: '确认',
-      content: '将退出当前房间，确定吗？',
+      content: '将退出当前通道，确定吗？',
       showCancel: true,
       success: (res) => {
         if (res.confirm) {
@@ -625,7 +625,7 @@ Page({
       } else {
         reject({
           code: 400,
-          reason: `connState : ${this.data.connState}. 尚未完成加入房间`
+          reason: `connState : ${this.data.connState}. 尚未完成加入通道`
         });
       }
     }).then(data => {
@@ -813,13 +813,13 @@ Page({
         } else {
           reject({
             code: 400,
-            reason: "请求被拒，请检查用户角色- 建议:取消[简易模式]，选择[主播/副播]重新登录"
+            reason: "请求被拒，请检查用户角色"
           });
         }
       } else {
         reject({
           code: 400,
-          reason: `connState : ${this.data.connState}. 尚未完成加入房间`
+          reason: `connState : ${this.data.connState}. 尚未完成加入通道`
         });
       }
     }).then(url => {
@@ -1339,9 +1339,9 @@ Page({
 
             reject(e);
           },
-          true, // disAppAuth
-          true, // disIploc
-          "wss://miniapp1.3ttech.cn/miniappau" // "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau" // auServer
+          true // disAppAuth
+          // true, // disIploc
+          // "wss://miniapp1.3ttech.cn/miniappau" // "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau" // auServer
         );
       } else {
         reject({
@@ -1397,10 +1397,10 @@ Page({
       z: 1
     };
 
-    sei.mid = this.uid; // 主播userId
+    sei.mid = this.uid; // master userId
     sei.ts = new Date().getTime(); // +new Date();
 
-    // for 主播位置
+    // for master 位置
     position.id = this.uid; // 被定位的用户userId
     position.x = 0;
     position.y = 0;
@@ -1537,13 +1537,11 @@ Page({
         }
 
         if (e.code == 310) {
-          /* 暂不再执行 自动 重新推流
-          // 重连且登录成功
-          // 尝试将之前的 推流/拉流 自动恢复
-          if (this.data.pushing) {
+          Utils.log(`event: session-status -- uid: ${e.uid} e.code: ${e.code} this.data.pushing: ${this.data.pushing}`);
+          // 重连且登录成功 -- 自动推流
+          if (!this.data.pushing) {
           	this.publish(true);
           }
-          */
           // 
           this.resubscribeAll();
         }
@@ -1577,7 +1575,7 @@ Page({
         });
         //
 
-        // 如果是 主播， 才执行 setSEI
+        // 如果 role 为 1， 才执行 setSEI
         if (this.role == 1) {
           this.setSEI(userIds, 1);
         }
@@ -1604,7 +1602,7 @@ Page({
           return `${item}` != `${userId}`
         });
 
-        // 如果是 主播， 才执行 setSEI
+        // 如果 role 为 1， 才执行 setSEI
         if (this.role == 1) {
           this.setSEI(userIds, 1);
         }

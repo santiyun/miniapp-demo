@@ -2,7 +2,6 @@
   "pages": [
     "pages/index/index",
     "pages/meeting/meeting",
-    "pages/test/test",
     "pages/logs/logs"
   ],
   "window": {

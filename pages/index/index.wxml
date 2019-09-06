@@ -3,24 +3,16 @@
   <view class="content flex-center-column">
     <view class="logo-section flex-center-column">
       <image class="logo" style="width: 300rpx; height: 200rpx;" mode="aspectFit" src="../../images/logo.png"></image>
-      <text class="h1">3T小程序实时互动</text>
+      <text class="h1">三体云demo</text>
     </view>
     <view class="form-section flex-center-column">
       <view class="rowWrapper flex-center-row">
-        <text class="h2">房间号</text>
-        <input placeholder-style='color:#A3D1E0' class="valueInput" type="number" placeholder='输入房间号' bindinput="onInputRoomId" bindconfirm="onInputRoomId" bindblur="onInputRoomId" value="{{demoMode == 0 ? '999' : ''}}"></input>
+        <text class="h2">通道号</text>
+        <input placeholder-style='color:#A3D1E0' class="valueInput" type="number" placeholder='输入通道号' bindinput="onInputRoomId" bindconfirm="onInputRoomId" bindblur="onInputRoomId" value="{{demoMode == 0 ? '999' : ''}}"></input>
       </view>
       <view wx:if="{{demoMode !== 0}}" class="rowWrapper flex-center-row">
         <text class="h2">用户ID</text>
         <input placeholder-style='color:#A3D1E0' class="valueInput" type="number" placeholder='输入用户ID' bindinput="onInputUserId" bindconfirm="onInputUserId" bindblur="onInputUserId" value=""></input>
-      </view>
-      <view wx:if="{{demoMode !== 0}}" class="rowWrapper flex-center-row">
-        <radio-group class="radio-group" bindchange="radioChangeUserRole">
-          <label class="radio" wx:for="{{chkUserRoles}}">
-            <radio value="{{item.name}}" checked="{{item.checked}}" />
-            <text class="h2">{{item.display}}</text>
-          </label>
-        </radio-group>
       </view>
       <view class="rowWrapper flex-center-row">
         <!--
@@ -37,21 +29,18 @@
           </label>
         </checkbox-group>
 		-->
-        <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">互动房间</button>
+        <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">加入通道</button>
       </view>
-      <!--
-      <view class="rowWrapper flex-center-row">
-        <button plain="true" bindtap="onTestClick" class="commonBtn">推拉流测试</button>
-      </view>
-	  -->
     </view>
     <view class="footer flex-center-column">
+	  <!--
       <checkbox-group bindchange="checkboxChangeDemoMode">
         <label class="checkbox" wx:for="{{chkDemoMode}}">
           <checkbox value="{{item.name}}" checked="{{item.checked}}" />
           <text class="h2">{{item.display}}</text>
         </label>
       </checkbox-group>
+	  -->
       <image class="logo-avatar" src="./Resources/logo-white.png" background-size="cover"></image>
       <text class="logo-name">三体云</text>
       <text>Powered by 3ttech. {{masdkVersion}}</text>

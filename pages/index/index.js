@@ -15,23 +15,9 @@ Page({
     hasUserInfo: false,
     // whether to disable join btn or not
     disableJoin: false,
-    chkUserRoles: [{
-      name: 'CHAIRMAN',
-      display: '主播',
-      value: 1
-    }, {
-      name: 'PARTICIPANT',
-      display: '副播',
-      checked: 'true',
-      value: 2
-    }, {
-      name: 'AUDIENCE',
-      display: '观众',
-      value: 3
-    }],
     // demo mode
-    // 0 -- 简易模式: 默认用户角色为 观众；用户ID自动随机生成；房间号默认为 999；
-    // 1 -- 专家模式: 用户角色可选；用户ID手动输入；房间号手动输入；
+    // 0 -- 简易模式: 默认用户角色为；用户ID自动随机生成；通道号默认为 999；
+    // 1 -- 专家模式: 用户角色可选；用户ID手动输入；通道号手动输入；
     demoMode: 0, // 
     // 
     chkDemoMode: [{
@@ -52,9 +38,9 @@ Page({
       display: '自动拉流',
       checked: true
     }],
-    // 入房间后，是否自动推流
+    // 入通道后，是否自动推流
     isAutoPush: true,
-    // 入房间后，是否自动拉流
+    // 入通道后，是否自动拉流
     isAutoPull: true
   },
 
@@ -107,16 +93,6 @@ Page({
    */
   onUnload: function() {
 
-  },
-
-  /**
-   * 进入 推拉流测试 页面
-   */
-  onTestClick: function() {
-    // go to test page if roomId is 'test'
-    wx.navigateTo({
-      url: `../test/test`
-    });
   },
 
   /**
@@ -240,9 +216,6 @@ Page({
         duration: 2000
       });
     } else {
-      if (roomId === 'test') {
-        this.onTestClick();
-      } else {
         //
         let role = this.data.userRole;
         let autoPull = this.data.isAutoPull;
@@ -254,7 +227,6 @@ Page({
         wx.navigateTo({
           url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
         });
-      }
     }
   },
 

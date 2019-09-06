@@ -1,4 +1,4 @@
-const APPID = 'test900572e02867fab8131651339518';
+const APPID = 'a967ac491e3acf92eed5e1b5ba641ab7'; // 'test900572e02867fab8131651339518';
 const TEST_SERVER = 'wss://sdkdemo1.3ttech.cn:5443';
 
 if (APPID === '')
