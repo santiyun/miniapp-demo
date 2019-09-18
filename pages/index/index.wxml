@@ -15,6 +15,14 @@
         <input placeholder-style='color:#A3D1E0' class="valueInput" type="number" placeholder='输入用户ID' bindinput="onInputUserId" bindconfirm="onInputUserId" bindblur="onInputUserId" value=""></input>
       </view>
       <view class="rowWrapper flex-center-row">
+        <radio-group class="radio-group" bindchange="radioChangeUserRole">
+          <label class="radio" wx:for="{{chkUserRoles}}">
+            <radio value="{{item.name}}" checked="{{item.checked}}" />
+            <text class="h2">{{item.display}}</text>
+          </label>
+        </radio-group>
+      </view>
+      <view class="rowWrapper flex-center-row">
         <!--
         <checkbox-group bindchange="checkboxChangeAutoPush">
           <label class="checkbox" wx:for="{{chkPushOn}}">

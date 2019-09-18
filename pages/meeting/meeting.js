@@ -175,12 +175,14 @@ Page({
         Utils.log(`init TTT Engine ok. userIds: ${JSON.stringify(userIds)}`);
 
         // role 为 1， 才执行 setSEI
-        if (this.role == 1) {
+        if (this.role === 1) {
           this.setSEI(userIds, 1);
         }
 
-        if (this.autoPush) {
-          this.publish(false);
+        if (this.role !== 3) {
+          if (this.autoPush) {
+            this.publish(false);
+          }
         }
       })
       .catch(e => {
@@ -1339,9 +1341,9 @@ Page({
 
             reject(e);
           },
-          true // disAppAuth
+          true //, // disAppAuth
           // true, // disIploc
-          // "wss://miniapp1.3ttech.cn/miniappau" // "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau" // auServer
+          // "wss://websdkv2a.3ttech.cn/miniappau" // "wss://miniapp1.3ttech.cn/miniappau" // "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau" // auServer
         );
       } else {
         reject({
@@ -1538,9 +1540,11 @@ Page({
 
         if (e.code == 310) {
           Utils.log(`event: session-status -- uid: ${e.uid} e.code: ${e.code} this.data.pushing: ${this.data.pushing}`);
-          // 重连且登录成功 -- 自动推流
-          if (!this.data.pushing) {
-          	this.publish(true);
+		  // 重连且登录成功 -- 自动推流
+          if (this.role !== 3) {
+            if (!this.data.pushing) {
+              this.publish(true);
+			}
           }
           // 
           this.resubscribeAll();

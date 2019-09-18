@@ -15,6 +15,16 @@ Page({
     hasUserInfo: false,
     // whether to disable join btn or not
     disableJoin: false,
+    chkUserRoles: [{
+      name: 'PARTICIPANT',
+      display: '副播',
+      value: 2
+    }, {
+      name: 'AUDIENCE',
+      display: '观众',
+      checked: 'true',
+      value: 3
+    }],
     // demo mode
     // 0 -- 简易模式: 默认用户角色为；用户ID自动随机生成；通道号默认为 999；
     // 1 -- 专家模式: 用户角色可选；用户ID手动输入；通道号手动输入；
@@ -26,7 +36,7 @@ Page({
       checked: true
     }],
     // 用户角色
-    userRole: 2,
+    userRole: 3,
     // 
     chkPushOn: [{
       name: 'PUSH_STREAM',
