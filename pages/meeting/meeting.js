@@ -10,7 +10,9 @@ const TTTMAEngine = require('../../lib/3T_Miniapp_SDK_for_WeChat');
 const MAX_USER = 7;
 const Layouter = require('../../utils/layout.js');
 const APPID = require('../../utils/config.js').APPID;
-const TEST_SERVER = require('../../utils/config.js').TEST_SERVER;
+const TEST_APPID = require('../../utils/config.js').TEST_APPID;
+const IPLOC_SERVER = require('../../utils/config.js').IPLOC_SERVER;
+const AU_SERVER = require('../../utils/config.js').AU_SERVER;
 
 /**
  * log relevant, remove these part and relevant code if not needed
@@ -186,9 +188,9 @@ Page({
         }
       })
       .catch(e => {
-        Utils.log(`init TTT Engine failed: ${e.code} ${e.reason}`);
+        Utils.log(`init TTT Engine failed: ${JSON.stringify(e)}`);
         wx.showToast({
-          title: `登录失败 -- ${e.code} ${e.reason}`,
+          title: `登录失败 -- ${JSON.stringify(e)}`,
           icon: 'none',
           duration: 5000
         });
@@ -1277,8 +1279,11 @@ Page({
       // Create Client
       Utils.log(`Client`);
 
-      // 第三个参数用来表明是否为 测试环境 -- true：测试环境；false：生产环境
-      client = new TTTMAEngine.Client(APPID, uid, false);
+	  // 第三个参数用来表明是否为 测试环境 -- true：测试环境；false：生产环境
+	  const miniappAuServer = AU_SERVER;
+	  const appId = APPID;// TEST_APPID;
+	  // TEST_APPID
+      client = new TTTMAEngine.Client(appId, uid, false);
       // store TTT Engine 
       this.client = client;
       if (!!client) {
@@ -1291,7 +1296,7 @@ Page({
           () => {});
         // 调用 TTTEngine 初始化
         client.init(
-          APPID,
+          appId,
           uid,
           (e) => {
             // 
@@ -1343,7 +1348,7 @@ Page({
           },
           true //, // disAppAuth
           // true, // disIploc
-          // "wss://websdkv2a.3ttech.cn/miniappau" // "wss://miniapp1.3ttech.cn/miniappau" // "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau" // auServer
+          // miniappAuServer // "wss://miniapp1.3ttech.cn/miniappau" // "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau" // auServer
         );
       } else {
         reject({
