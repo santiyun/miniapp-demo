@@ -38,6 +38,10 @@ Component({
       type: Boolean,
       value: !1
     },
+    enableCamera: {
+      type: Boolean,
+      value: 1  
+    },
     debug: {
       type: Boolean,
       value: !1

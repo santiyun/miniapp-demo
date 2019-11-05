@@ -1,5 +1,5 @@
 const APPID = 'a967ac491e3acf92eed5e1b5ba641ab7';
-const TEST_APPID = 'test900572e02867fab8131651339518';
+const TEST_APPID = 'test900572e02867fab8131651339518'; // 'c196211b4da0af8ef0955c3f219d4ef6';// 
 const IPLOC_SERVER = '';
 const AU_SERVER = 'wss://gzeduservice.3ttech.cn/miniappau';
 

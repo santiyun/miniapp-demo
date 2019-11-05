@@ -55,7 +55,6 @@ Page({
      * muted
      */
     muted: false,
-    enableCamera: true,
     muteRemote: false,
     showHDTips: false, // 默认不显示清晰度弹窗
     mode: "RTC",
@@ -1281,7 +1280,7 @@ Page({
 
 	  // 第三个参数用来表明是否为 测试环境 -- true：测试环境；false：生产环境
 	  const miniappAuServer = AU_SERVER;
-	  const appId = APPID;// TEST_APPID;
+	  const appId = APPID; // TEST_APPID;// APPID;// ;
 	  // TEST_APPID
       client = new TTTMAEngine.Client(appId, uid, false);
       // store TTT Engine 
@@ -1346,7 +1345,7 @@ Page({
 
             reject(e);
           },
-          true //, // disAppAuth
+          true//, // disAppAuth
           // true, // disIploc
           // miniappAuServer // "wss://miniapp1.3ttech.cn/miniappau" // "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau" // auServer
         );
