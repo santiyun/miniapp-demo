@@ -43,15 +43,9 @@
  * wss://webmedia16.3ttech.cn
  * wss://webmedia17.3ttech.cn
  * wss://webmedia18.3ttech.cn
- * wss://webmedia19.3ttech.cn
- * wss://webmedia20.3ttech.cn
  * wss://miniapp1.3ttech.cn
- * wss://miniapp2.3ttech.cn
- * wss://miniapp3.3ttech.cn
- * wss://miniapp4.3ttech.cn
- * wss://miniapp5.3ttech.cn
 
-3. 微信小程序组件
+1. 微信小程序组件
 
 请确保有一个支持 **live-pusher** 和 **live-player** 组件的微信公众平台账号
    > 只有特定行业的认证企业账号才可使用这两个组件。详情请[点击这里](https://developers.weixin.qq.com/miniprogram/dev/component/live-player.html)
