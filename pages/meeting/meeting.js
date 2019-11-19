@@ -12,7 +12,6 @@ const Layouter = require('../../utils/layout.js');
 const APPID = require('../../utils/config.js').APPID;
 const TEST_APPID = require('../../utils/config.js').TEST_APPID;
 const IPLOC_SERVER = require('../../utils/config.js').IPLOC_SERVER;
-const AU_SERVER = require('../../utils/config.js').AU_SERVER;
 
 /**
  * log relevant, remove these part and relevant code if not needed
@@ -102,7 +101,15 @@ Page({
     // 是否自动拉流
     this.autoPull = (options.autoPull === 'true') ? true : false;
     // 是否自动推流
-    this.autoPush = (options.autoPush === 'true') ? true : false;
+	this.autoPush = (options.autoPush === 'true') ? true : false;
+	// 
+	this.appId = options.appId;
+	// 
+	this.customServer = options.customServer;
+	// 
+	this.isCustom = (options.isCustom === 'true') ? true : false;
+	// 
+	this.isTest = (options.isTest === 'true') ? true : false;
 
     Utils.log(`this.autoPull : ${this.autoPull} this.autoPush : ${this.autoPush}`);
     //
@@ -159,7 +166,10 @@ Page({
    */
   onReady: function() {
     let roomId = this.roomId;
-    let uid = this.uid;
+	let uid = this.uid;
+	let appId = this.appId;
+	let isTest = this.isTest;
+
     Utils.log(`onReady`);
 
     /*
@@ -170,7 +180,7 @@ Page({
 	*/
 
     // init TTT Engine
-    this.initEngine(uid, roomId)
+    this.initEngine(appId, uid, roomId, isTest)
       .then(() => {
         let userIds = this.data.userIds || [];
         Utils.log(`init TTT Engine ok. userIds: ${JSON.stringify(userIds)}`);
@@ -592,6 +602,10 @@ Page({
         duration: 5000
       });
 
+      return;
+    }
+	
+    if (this.hasMedia('player', userId)) {
       return;
     }
 
@@ -1271,18 +1285,18 @@ Page({
   /**
    * 初始化 3t Engine (SDK)
    */
-  initEngine: function(uid, roomId) {
+  initEngine: function(appId, uid, roomId, isTest) {
     return new Promise((resolve, reject) => {
       let client = {}
 
       // Create Client
       Utils.log(`Client`);
 
-	  // 第三个参数用来表明是否为 测试环境 -- true：测试环境；false：生产环境
-	  const miniappAuServer = AU_SERVER;
-	  const appId = APPID; // TEST_APPID;// APPID;// ;
+	  // isTest 用来表明是否为 测试环境 -- true：测试环境；false：生产环境
+	  const miniappAuServer = this.customServer;
+	  // const appId = TEST_APPID;// APPID;// ;
 	  // TEST_APPID
-      client = new TTTMAEngine.Client(appId, uid, false);
+      client = new TTTMAEngine.Client(appId, uid, isTest);
       // store TTT Engine 
       this.client = client;
       if (!!client) {
@@ -1292,7 +1306,9 @@ Page({
         client.setRole(
           this.role,
           () => {},
-          () => {});
+		  () => {});
+		// client.setPort(8443);
+		// 
         // 调用 TTTEngine 初始化
         client.init(
           appId,
@@ -1345,9 +1361,9 @@ Page({
 
             reject(e);
           },
-          true//, // disAppAuth
-          // true, // disIploc
-          // miniappAuServer // "wss://miniapp1.3ttech.cn/miniappau" // "wss://stech.3ttech.cn/miniappau" // "wss://gzeduservice.3ttech.cn/miniappau" // auServer
+          true, // disAppAuth
+          this.isCustom,// true, // disIploc
+          miniappAuServer // "miniapp1.3ttech.cn" // "stech.3ttech.cn" // "gzeduservice.3ttech.cn" // auServer
         );
       } else {
         reject({

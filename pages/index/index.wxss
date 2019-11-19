@@ -54,6 +54,12 @@ page {
   width: 100%;
 }
 
+.content .form-section .section {
+  font-size: 28rpx;
+  margin-left: 10rpx;
+  margin-top: 10rpx;
+}
+
 .content .valueInput {
   font-size: 28rpx;
   margin: 5rpx 30rpx;

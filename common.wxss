@@ -9,17 +9,22 @@
 .h1{
   font-size: 32rpx;
 }
+
 .h2{
   font-size: 24rpx;
 }
 
-.flex-center-column{
+.on { display: block }
+
+.off { display: none }
+
+.flex-center-column {
   display: flex;
   flex-direction: column;
   align-items: center;
 }
 
-.flex-center-row{
+.flex-center-row {
   display: flex;
   padding-top: 10rpx;
   padding-bottom: 10rpx;

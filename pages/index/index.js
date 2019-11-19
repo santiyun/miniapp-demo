@@ -1,5 +1,6 @@
 const app = getApp()
 const Utils = require('../../utils/util.js')
+const AU_SERVER = require('../../utils/config.js').AU_SERVER;
 
 const TTTMAEngine = require('../../lib/3T_Miniapp_SDK_for_WeChat');
 
@@ -28,13 +29,25 @@ Page({
     // demo mode
     // 0 -- 简易模式: 默认用户角色为；用户ID自动随机生成；通道号默认为 999；
     // 1 -- 专家模式: 用户角色可选；用户ID手动输入；通道号手动输入；
-    demoMode: 0, // 
+	demoMode: 0, // 
+	// 
+	auServer: AU_SERVER,
     // 
     chkDemoMode: [{
       name: 'DEMO_MODE',
       display: '简易模式',
       checked: true
+	}],
+	appIDArray: ['a967ac491e3acf92eed5e1b5ba641ab7', 'test900572e02867fab8131651339518', '手动输入'],
+	appIDIndex: 0,
+	custom: false,
+    // 
+    chkCustomServer: [{
+      name: 'CUSTOM_SERVER',
+      display: '设置服务器',
+      checked: false
     }],
+    isCustomServer: false,
     // 用户角色
     userRole: 3,
     // 
@@ -59,7 +72,9 @@ Page({
    */
   onLoad: function(options) {
     this.roomId = '999';
-    this.userId = '';
+	this.userId = '';
+	this.appId = 'a967ac491e3acf92eed5e1b5ba641ab7';
+	this.customServer = null;
 
     // 
     Utils.log(`index page onLoad: ${JSON.stringify(TTTMAEngine.getVersion())}`);
@@ -119,6 +134,25 @@ Page({
     this.onJoin();
   },
 
+  bindAppIDPickerChange: function (e) {
+    // console.log('select: ', this.data.casArray[e.detail.value])
+    const index = e.detail.value;
+
+    if (e.detail.value == 2) {
+      this.setData({ custom: true });
+    } else {
+      this.setData({ custom: false });
+    }
+    this.setData({ appIDIndex: index });
+
+    // 
+    let items = this.data.appIDArray || [];
+
+    if (index < items.length - 1) {
+      this.appId = this.data.appIDArray[index];
+    }
+  },
+
   radioChangeUserRole: function(e) {
     let value = e.detail.value.toString();
     let items = this.data.chkUserRoles || [];
@@ -161,6 +195,28 @@ Page({
     });
 
     Utils.log(`checkboxChangeDemoMode : ${this.data.demoMode}`);
+  },
+
+  checkboxChangeCustomServer(e) {
+    let value = e.detail.value.toString();
+    let items = this.data.chkCustomServer || [];
+
+    let isCustomServer = false;
+
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i];
+
+      if (value.search(`${item.name}`) !== -1) {
+        isCustomServer = true;
+        break;
+      }
+    }
+
+    this.setData({
+      isCustomServer: isCustomServer
+    });
+
+    Utils.log(`checkboxChangeCustomServer : ${this.data.isCustomServer}`);
   },
 
   checkboxChangeAutoPush(e) {
@@ -214,12 +270,14 @@ Page({
       this.userId = `${Math.floor(Math.random() * 1000000)}`;
     }
 
-    let roomId = this.roomId || "";
-    let userId = this.userId || "";
+    let roomId = this.roomId || '';
+	let userId = this.userId || '';
+	let appId = this.appId || null;
+	let customServer = this.customServer || AU_SERVER;
 
     let t = (typeof userId);
 
-    if (!roomId || parseInt(roomId) == 0 || !userId || parseInt(userId) == 0) {
+    if (!appId || !roomId || parseInt(roomId) == 0 || !userId || parseInt(userId) == 0) {
       wx.showToast({
         title: '请提供相应参数',
         icon: 'none',
@@ -229,13 +287,16 @@ Page({
         //
         let role = this.data.userRole;
         let autoPull = this.data.isAutoPull;
-        let autoPush = this.data.isAutoPush;
+		let autoPush = this.data.isAutoPush;
+		let isCustom = this.data.isCustomServer;
+
+		let isTest = false;
 
         roomId = parseInt(roomId);
         userId = parseInt(userId);
 
         wx.navigateTo({
-          url: `../meeting/meeting?roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}`
+          url: `../meeting/meeting?isCustom=${isCustom}&customServer=${customServer}&appId=${appId}&roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}&isTest=${isTest}`
         });
     }
   },
@@ -243,6 +304,16 @@ Page({
   onInputRoomId: function(e) {
     let value = e.detail.value;
     this.roomId = value;
+  },
+
+  onInputAppID: function(e) {
+    let value = e.detail.value;
+    this.appId = value;
+  },
+
+  onInputServer: function(e) {
+    let value = e.detail.value;
+    this.customServer = value;
   },
 
   onInputUserId: function(e) {

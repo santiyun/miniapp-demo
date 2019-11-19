@@ -23,6 +23,28 @@
         </radio-group>
       </view>
       <view class="rowWrapper flex-center-row">
+        <picker bindchange="bindAppIDPickerChange" value="{{appIDIndex}}" range="{{appIDArray}}">
+          <view>
+			<text class="h2">AppID : </text>
+            <text class="h2">{{appIDArray[appIDIndex]}}</text>
+          </view>
+        </picker>
+      </view>
+      <view class="section {{custom ? 'on' : 'off'}}">
+        <input class="h2" name="other" placeholder="请输入 AppID" type="text" bindinput="onInputAppID" bindconfirm="onInputAppID" bindblur="onInputAppID"/>
+      </view>
+      <view class="rowWrapper flex-center-row">
+        <checkbox-group bindchange="checkboxChangeCustomServer">
+          <label class="checkbox" wx:for="{{chkCustomServer}}">
+            <checkbox value="{{item.name}}" checked="{{item.checked}}" />
+            <text class="h2">{{item.display}} : </text>
+          </label>
+        </checkbox-group>
+        <view wx:if="{{isCustomServer}}">
+          <input class="h2" name="customServer" placeholder="请输入服务器域名" type="text" bindinput="onInputServer" bindconfirm="onInputServer" bindblur="onInputServer" value="{{auServer}}"/>
+        </view>
+      </view>
+      <view class="rowWrapper flex-center-row">
         <!--
         <checkbox-group bindchange="checkboxChangeAutoPush">
           <label class="checkbox" wx:for="{{chkPushOn}}">
