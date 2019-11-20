@@ -33,16 +33,7 @@
  * wss://webmedia6.3ttech.cn
  * wss://webmedia7.3ttech.cn
  * wss://webmedia8.3ttech.cn
- * wss://webmedia9.3ttech.cn
- * wss://webmedia10.3ttech.cn
- * wss://webmedia11.3ttech.cn
- * wss://webmedia12.3ttech.cn
- * wss://webmedia13.3ttech.cn
- * wss://webmedia14.3ttech.cn
- * wss://webmedia15.3ttech.cn
- * wss://webmedia16.3ttech.cn
- * wss://webmedia17.3ttech.cn
- * wss://webmedia18.3ttech.cn
+ * wss://shenzhen1.3ttech.cn
  * wss://miniapp1.3ttech.cn
 
 1. 微信小程序组件
