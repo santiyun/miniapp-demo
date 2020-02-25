@@ -8,7 +8,7 @@
     <view class="form-section flex-center-column">
       <view class="rowWrapper flex-center-row">
         <text class="h2">通道号</text>
-        <input placeholder-style='color:#A3D1E0' class="valueInput" type="number" placeholder='输入通道号' bindinput="onInputRoomId" bindconfirm="onInputRoomId" bindblur="onInputRoomId" value="{{demoMode == 0 ? '999' : ''}}"></input>
+        <input placeholder-style='color:#A3D1E0' class="valueInput" type="number" placeholder='输入通道号' bindinput="onInputRoomId" bindconfirm="onInputRoomId" bindblur="onInputRoomId" value="{{roomId}}"></input>
       </view>
       <view wx:if="{{demoMode !== 0}}" class="rowWrapper flex-center-row">
         <text class="h2">用户ID</text>
@@ -17,7 +17,7 @@
       <view class="rowWrapper flex-center-row">
         <radio-group class="radio-group" bindchange="radioChangeUserRole">
           <label class="radio" wx:for="{{chkUserRoles}}">
-            <radio value="{{item.name}}" checked="{{item.checked}}" />
+            <radio value="{{item.name}}" checked="{{item.value === userRole}}" />
             <text class="h2">{{item.display}}</text>
           </label>
         </radio-group>
@@ -26,22 +26,23 @@
         <picker bindchange="bindAppIDPickerChange" value="{{appIDIndex}}" range="{{appIDArray}}">
           <view>
 			<text class="h2">AppID : </text>
-            <text class="h2">{{appIDArray[appIDIndex]}}</text>
+            <!-- <text class="h2">{{appIDArray[appIDIndex]}}</text> -->
+			<text class="h2">{{appId}}</text>
           </view>
         </picker>
       </view>
-      <view class="section {{custom ? 'on' : 'off'}}">
+      <view class="section {{customAppID ? 'on' : 'off'}}">
         <input class="h2" name="other" placeholder="请输入 AppID" type="text" bindinput="onInputAppID" bindconfirm="onInputAppID" bindblur="onInputAppID"/>
       </view>
       <view class="rowWrapper flex-center-row">
         <checkbox-group bindchange="checkboxChangeCustomServer">
           <label class="checkbox" wx:for="{{chkCustomServer}}">
-            <checkbox value="{{item.name}}" checked="{{item.checked}}" />
+            <checkbox value="{{item.name}}" checked="{{isCustomServer}}" />
             <text class="h2">{{item.display}} : </text>
           </label>
         </checkbox-group>
         <view wx:if="{{isCustomServer}}">
-          <input class="h2" name="customServer" placeholder="请输入服务器域名" type="text" bindinput="onInputServer" bindconfirm="onInputServer" bindblur="onInputServer" value="{{auServer}}"/>
+          <input class="h2" name="customServer" placeholder="请输入服务器域名" type="text" bindinput="onInputServer" bindconfirm="onInputServer" bindblur="onInputServer" value="{{customServer}}"/>
         </view>
       </view>
       <view class="rowWrapper flex-center-row">
@@ -52,13 +53,15 @@
             <text class="h2">{{item.display}}</text>
           </label>
         </checkbox-group>
+        -->
         <checkbox-group bindchange="checkboxChangeAutoPull">
           <label class="checkbox" wx:for="{{chkAutoPull}}">
-            <checkbox value="{{item.name}}" checked="{{item.checked}}" />
+            <checkbox value="{{item.name}}" checked="{{isAutoPull}}" />
             <text class="h2">{{item.display}}</text>
           </label>
         </checkbox-group>
-		-->
+      </view>
+      <view class="rowWrapper flex-center-row">
         <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">加入通道</button>
       </view>
     </view>
@@ -73,7 +76,9 @@
 	  -->
       <image class="logo-avatar" src="./Resources/logo-white.png" background-size="cover"></image>
       <text class="logo-name">三体云</text>
-      <text>Powered by 3ttech. {{masdkVersion}}</text>
+      <text>Powered by 3ttech.</text>
+      <text>Demo: {{demoVersion}}</text>
+      <text>Base SDK: {{masdkVersion}}</text>
     </view>
   </view>
 </view>

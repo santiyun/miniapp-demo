@@ -17,6 +17,10 @@ Page({
     // whether to disable join btn or not
     disableJoin: false,
     chkUserRoles: [{
+      name: 'CHAIRMAN',
+      display: '主播',
+      value: 1
+    }, {
       name: 'PARTICIPANT',
       display: '副播',
       value: 2
@@ -25,14 +29,14 @@ Page({
       display: '观众',
       checked: 'true',
       value: 3
-    }],
+	}],
+    // 用户角色
+    userRole: 3,
     // demo mode
     // 0 -- 简易模式: 默认用户角色为；用户ID自动随机生成；通道号默认为 999；
     // 1 -- 专家模式: 用户角色可选；用户ID手动输入；通道号手动输入；
 	demoMode: 0, // 
 	// 
-	auServer: AU_SERVER,
-    // 
     chkDemoMode: [{
       name: 'DEMO_MODE',
       display: '简易模式',
@@ -40,41 +44,121 @@ Page({
 	}],
 	appIDArray: ['a967ac491e3acf92eed5e1b5ba641ab7', 'test900572e02867fab8131651339518', '手动输入'],
 	appIDIndex: 0,
-	custom: false,
+	appId: 'a967ac491e3acf92eed5e1b5ba641ab7',
+    // 
+	customAppID: false,
+	// 
+	roomId: '999',
     // 
     chkCustomServer: [{
       name: 'CUSTOM_SERVER',
       display: '设置服务器',
       checked: false
-    }],
+	}],
     isCustomServer: false,
-    // 用户角色
-    userRole: 3,
+	customServer: AU_SERVER,
     // 
     chkPushOn: [{
       name: 'PUSH_STREAM',
-      display: '自动推流',
-      checked: true
+      display: '自动推流'
     }],
     chkAutoPull: [{
       name: 'AUTO_SUBSCRIBE',
-      display: '自动拉流',
-      checked: true
+      display: '自动拉流'
     }],
     // 入通道后，是否自动推流
     isAutoPush: true,
     // 入通道后，是否自动拉流
-    isAutoPull: true
+	isAutoPull: false,
+	// demo version
+	demoVersion: '2.1.0-11912171',
+	// sdk version
+	masdkVersion: ''
   },
 
   /**
    * 生命周期函数--监听页面加载
    */
   onLoad: function(options) {
-    this.roomId = '999';
+	// 
+	let appId = 'a967ac491e3acf92eed5e1b5ba641ab7';
+	let roomId = '999';
+	let isAutoPull = false;
+	let isCustomServer = false;
+	let customServer = '';
+	let userRole = 3;
+
+	try {
+		var value = wx.getStorageSync('roomId');
+		if (value) {
+			Utils.log(`index page onLoad - getStorageSync(roomId) value: ${value}`);
+			roomId = value;
+		} else {
+			Utils.log('index page onLoad - getStorageSync(roomId) no-data');
+		}
+		// 
+		value = wx.getStorageSync('appId');
+		if (value) {
+			Utils.log(`index page onLoad - getStorageSync(appId) value: ${value}`);
+			appId = value;
+		} else {
+			Utils.log('index page onLoad - getStorageSync(appId) no-data');
+		}
+		// 
+		value = wx.getStorageSync('isAutoPull');
+		if (value) {
+			Utils.log(`index page onLoad - getStorageSync(isAutoPull) value: ${value}`);
+
+			isAutoPull = (value === 'true');
+			// 
+		} else {
+			Utils.log('index page onLoad - getStorageSync(isAutoPull) no-data');
+		}
+		// 
+		value = wx.getStorageSync('isCustomServer');
+		if (value) {
+			Utils.log(`index page onLoad - getStorageSync(isCustomServer) value: ${value}`);
+
+			isCustomServer = (value === 'true');
+			// 
+		} else {
+			Utils.log('index page onLoad - getStorageSync(isCustomServer) no-data');
+		}
+		// 
+		value = wx.getStorageSync('customServer');
+		if (value && value.length > 0) {
+			Utils.log(`index page onLoad - getStorageSync(customServer) value: ${value}`);
+
+			customServer = value;
+		} else {
+			Utils.log('index page onLoad - getStorageSync(customServer) no-data');
+		}
+		// 
+		value = wx.getStorageSync('role');
+		if (value) {
+			Utils.log(`index page onLoad - getStorageSync(role) value: ${value}`);
+
+			userRole = parseInt(value);
+			// 
+		} else {
+			Utils.log('index page onLoad - getStorageSync(role) no-data');
+		}
+	  } catch (e) {
+		Utils.log(`index page onLoad: ${JSON.stringify(e)}`, 'error');
+	}
+
+	// 
+	this.setData({
+		isCustomServer : isCustomServer && customServer !== '',
+		customServer,
+		roomId,
+		appId,
+		userRole,
+		isAutoPull,
+		masdkVersion: `${JSON.stringify(TTTMAEngine.getVersion())}`
+	  });
+	  
 	this.userId = '';
-	this.appId = 'a967ac491e3acf92eed5e1b5ba641ab7';
-	this.customServer = null;
 
     // 
     Utils.log(`index page onLoad: ${JSON.stringify(TTTMAEngine.getVersion())}`);
@@ -87,11 +171,6 @@ Page({
         userInfo: userInfo
       });
     }
-
-    // 
-    this.setData({
-      masdkVersion: `${JSON.stringify(TTTMAEngine.getVersion())}`
-    });
   },
 
   /**
@@ -134,45 +213,42 @@ Page({
     this.onJoin();
   },
 
-  bindAppIDPickerChange: function (e) {
-    // console.log('select: ', this.data.casArray[e.detail.value])
-    const index = e.detail.value;
+  onJoin: function() {
+    let demoMode = this.data.demoMode;
+    if (this.data.demoMode == 0) {
+      // 自动随机生成 userId
+      this.userId = `${Math.floor(Math.random() * 1000000)}`;
+    }
 
-    if (e.detail.value == 2) {
-      this.setData({ custom: true });
+    let roomId = this.data.roomId || '';
+	let userId = this.userId || '';
+	let appId = this.data.appId || null;
+	let customServer = this.data.customServer;
+
+    let t = (typeof userId);
+
+    if (!appId || !roomId || parseInt(roomId) == 0 || !userId || parseInt(userId) == 0) {
+      wx.showToast({
+        title: '请提供相应参数',
+        icon: 'none',
+        duration: 2000
+      });
     } else {
-      this.setData({ custom: false });
+        //
+        let role = this.data.userRole;
+        let autoPull = this.data.isAutoPull;
+		let autoPush = this.data.isAutoPush;
+		let isCustom = this.data.isCustomServer;
+
+		let isTest = false;
+
+        roomId = parseInt(roomId);
+        userId = parseInt(userId);
+
+        wx.navigateTo({
+          url: `../meeting/meeting?isCustom=${isCustom}&customServer=${customServer}&appId=${appId}&roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}&isTest=${isTest}`
+        });
     }
-    this.setData({ appIDIndex: index });
-
-    // 
-    let items = this.data.appIDArray || [];
-
-    if (index < items.length - 1) {
-      this.appId = this.data.appIDArray[index];
-    }
-  },
-
-  radioChangeUserRole: function(e) {
-    let value = e.detail.value.toString();
-    let items = this.data.chkUserRoles || [];
-
-    let role = 0;
-
-    for (let i = 0; i < items.length; i++) {
-      let item = items[i];
-
-      if (value.search(`${item.name}`) !== -1) {
-        role = item.value;
-        break;
-      }
-    }
-
-    this.setData({
-      userRole: role
-    });
-
-    Utils.log(`radioChangeUserRole : ${this.data.userRole}`);
   },
 
   checkboxChangeDemoMode(e) {
@@ -195,28 +271,6 @@ Page({
     });
 
     Utils.log(`checkboxChangeDemoMode : ${this.data.demoMode}`);
-  },
-
-  checkboxChangeCustomServer(e) {
-    let value = e.detail.value.toString();
-    let items = this.data.chkCustomServer || [];
-
-    let isCustomServer = false;
-
-    for (let i = 0; i < items.length; i++) {
-      let item = items[i];
-
-      if (value.search(`${item.name}`) !== -1) {
-        isCustomServer = true;
-        break;
-      }
-    }
-
-    this.setData({
-      isCustomServer: isCustomServer
-    });
-
-    Utils.log(`checkboxChangeCustomServer : ${this.data.isCustomServer}`);
   },
 
   checkboxChangeAutoPush(e) {
@@ -256,64 +310,150 @@ Page({
       }
     }
 
-    this.setData({
-      isAutoPull: isAutoPull
-    });
+	this.setData({ isAutoPull });
+
+	//
+	try {
+		wx.setStorageSync('isAutoPull', isAutoPull ? 'true' : 'false');
+	  } catch (e) {
+		Utils.log(`checkboxChangeAutoPull failed. e: ${JSON.stringify(e)}`);
+	  }
+
 
     Utils.log(`checkboxChangeAutoPull : ${this.data.isAutoPull}`);
   },
 
-  onJoin: function() {
-    let demoMode = this.data.demoMode;
-    if (this.data.demoMode == 0) {
-      // 自动随机生成 userId
-      this.userId = `${Math.floor(Math.random() * 1000000)}`;
-    }
-
-    let roomId = this.roomId || '';
-	let userId = this.userId || '';
-	let appId = this.appId || null;
-	let customServer = this.customServer || AU_SERVER;
-
-    let t = (typeof userId);
-
-    if (!appId || !roomId || parseInt(roomId) == 0 || !userId || parseInt(userId) == 0) {
-      wx.showToast({
-        title: '请提供相应参数',
-        icon: 'none',
-        duration: 2000
-      });
-    } else {
-        //
-        let role = this.data.userRole;
-        let autoPull = this.data.isAutoPull;
-		let autoPush = this.data.isAutoPush;
-		let isCustom = this.data.isCustomServer;
-
-		let isTest = false;
-
-        roomId = parseInt(roomId);
-        userId = parseInt(userId);
-
-        wx.navigateTo({
-          url: `../meeting/meeting?isCustom=${isCustom}&customServer=${customServer}&appId=${appId}&roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}&isTest=${isTest}`
-        });
-    }
-  },
-
   onInputRoomId: function(e) {
     let value = e.detail.value;
-    this.roomId = value;
+	let roomId = value;
+
+    this.setData({ roomId });
+
+	//
+	try {
+		wx.setStorageSync('roomId', roomId);
+	  } catch (e) {
+		Utils.log(`onInputRoomId failed. e: ${JSON.stringify(e)}`);
+	  }
+
+	Utils.log(`onInputRoomId roomId: ${roomId}`);
   },
+
+  radioChangeUserRole: function(e) {
+    let value = e.detail.value.toString();
+    let items = this.data.chkUserRoles || [];
+
+    let role = 0;
+
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i];
+
+      if (value.search(`${item.name}`) !== -1) {
+        role = item.value;
+        break;
+      }
+	}
+	
+    this.setData({ userRole: role });
+  
+	// 
+	try {
+		wx.setStorageSync('role', `${role}`);
+	  } catch (e) {
+		Utils.log(`radioChangeUserRole failed. e: ${JSON.stringify(e)}`);
+	  }
+
+    Utils.log(`radioChangeUserRole userRole: ${this.data.userRole}`);
+  },
+
+  bindAppIDPickerChange: function (e) {
+    // console.log('select: ', this.data.casArray[e.detail.value])
+    const index = e.detail.value;
+
+    if (e.detail.value == 2) {
+      this.setData({ customAppID: true });
+    } else {
+      this.setData({ customAppID: false });
+    }
+    this.setData({ appIDIndex: index });
+
+    // 
+    let items = this.data.appIDArray || [];
+
+    if (index < items.length - 1) {
+	  let appId = this.data.appIDArray[index];
+	  
+	  this.setData({ appId });
+
+	  //
+	  try {
+		wx.setStorageSync('appId', appId);
+	  } catch (e) {
+		Utils.log(`bindAppIDPickerChange failed. e: ${JSON.stringify(e)}`);
+	  }
+
+	  Utils.log(`bindAppIDPickerChange appId: ${appId}`);
+	}
+},
 
   onInputAppID: function(e) {
     let value = e.detail.value;
-    this.appId = value;
+	let appId = value;
+	
+	//
+	this.setData({ appId });
+
+	try {
+		wx.setStorageSync('appId', appId);
+	  } catch (e) {
+		Utils.log(`onInputAppID failed. e: ${JSON.stringify(e)}`);
+	  }
+
+	Utils.log(`onInputAppID appId: ${appId}`);
+  },
+
+  checkboxChangeCustomServer(e) {
+    let value = e.detail.value.toString();
+    let items = this.data.chkCustomServer || [];
+
+	let isCustomServer = false;
+
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i];
+
+      if (value.search(`${item.name}`) !== -1) {
+        isCustomServer = true;
+        break;
+      }
+    }
+
+    this.setData({ isCustomServer });
+
+	//
+	try {
+		wx.setStorageSync('isCustomServer', isCustomServer ? 'true' : 'false');
+	  } catch (e) {
+		Utils.log(`checkboxChangeCustomServer failed. e: ${JSON.stringify(e)}`);
+	  }
+
+    Utils.log(`checkboxChangeCustomServer : ${this.data.isCustomServer}`);
   },
 
   onInputServer: function(e) {
     let value = e.detail.value;
-    this.customServer = value;
+	let customServer = value;
+	
+	//
+	this.setData({ customServer });
+	
+	//
+	try {
+		wx.setStorageSync('customServer', customServer);
+	  } catch (e) {
+		Utils.log(`onInputAppID failed. e: ${JSON.stringify(e)}`);
+	  }
+
+	Utils.log(`onInputServer customServer: ${this.data.customServer}`);
   },
 
   onInputUserId: function(e) {

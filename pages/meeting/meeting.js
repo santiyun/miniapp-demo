@@ -523,14 +523,11 @@ Page({
 
             let client = this.client;
             if (!!client) {
-              client.destroy(
-                () => {},
-                () => {});
-            }
-
-            wx.reLaunch({
-              url: '../index/index'
-            });
+              client.destroy();
+			}
+			wx.reLaunch({
+				url: '../index/index'
+			  });
 
             // this.navigateIndex();
           }
@@ -1363,7 +1360,7 @@ Page({
           },
           true, // disAppAuth
           this.isCustom,// true, // disIploc
-          miniappAuServer // "miniapp1.3ttech.cn" // "stech.3ttech.cn" // "gzeduservice.3ttech.cn" // auServer
+          miniappAuServer // "miniapp1.3ttech.cn" // "stech.3ttech.cn" // "gzeduservice.3ttech.cn" // customServer
         );
       } else {
         reject({
@@ -1516,19 +1513,19 @@ Page({
         // 
         let loginStatus = '';
         if (e.code == 3000) {
-          loginStatus = '正在重连'
+          loginStatus = `正在重连 - ${client.auServer}`
         } else if (e.code == 200) {
-          loginStatus = '已连接'
+          loginStatus = `已连接 - ${client.auServer}`
         } else if (e.code == 210) {
-          loginStatus = '登录在线'
+          loginStatus = `登录在线 - ${client.auServer}`
         } else if (e.code == 300) {
-          loginStatus = '已连接'
+          loginStatus = `已连接: ${client.auServer}`
         } else if (e.code == 310) {
-          loginStatus = '登录在线'
+          loginStatus = `登录在线 - ${client.auServer}`
         } else if (e.code == 1000) {
-          loginStatus = '最终失败'
+          loginStatus = `最终失败 - ${client.auServer}`
         } else {
-          loginStatus = '未知'
+          loginStatus = `未知 - ${client.auServer}`
         }
 
         this.setData({
