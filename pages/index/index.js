@@ -17,21 +17,17 @@ Page({
     // whether to disable join btn or not
     disableJoin: false,
     chkUserRoles: [{
-      name: 'CHAIRMAN',
-      display: '主播',
-      value: 1
-    }, {
       name: 'PARTICIPANT',
       display: '副播',
+      checked: 'true',
       value: 2
     }, {
       name: 'AUDIENCE',
       display: '观众',
-      checked: 'true',
       value: 3
 	}],
     // 用户角色
-    userRole: 3,
+    userRole: 2,
     // demo mode
     // 0 -- 简易模式: 默认用户角色为；用户ID自动随机生成；通道号默认为 999；
     // 1 -- 专家模式: 用户角色可选；用户ID手动输入；通道号手动输入；
@@ -48,7 +44,7 @@ Page({
     // 
 	customAppID: false,
 	// 
-	roomId: '999',
+	roomId: '999000',
     // 
     chkCustomServer: [{
       name: 'CUSTOM_SERVER',
@@ -64,14 +60,15 @@ Page({
     }],
     chkAutoPull: [{
       name: 'AUTO_SUBSCRIBE',
-      display: '自动拉流'
+	  display: '自动拉流',
+	  checked: true
     }],
     // 入通道后，是否自动推流
     isAutoPush: true,
     // 入通道后，是否自动拉流
-	isAutoPull: false,
+	isAutoPull: true,
 	// demo version
-	demoVersion: '2.1.0-11912171',
+	demoVersion: '2.1.3-12003051',
 	// sdk version
 	masdkVersion: ''
   },
@@ -82,11 +79,11 @@ Page({
   onLoad: function(options) {
 	// 
 	let appId = 'a967ac491e3acf92eed5e1b5ba641ab7';
-	let roomId = '999';
-	let isAutoPull = false;
+	let roomId = '999000';
+	let isAutoPull = true;
 	let isCustomServer = false;
 	let customServer = '';
-	let userRole = 3;
+	let userRole = 2;
 
 	try {
 		var value = wx.getStorageSync('roomId');

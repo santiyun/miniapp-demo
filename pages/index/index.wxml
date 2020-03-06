@@ -10,6 +10,10 @@
         <text class="h2">通道号</text>
         <input placeholder-style='color:#A3D1E0' class="valueInput" type="number" placeholder='输入通道号' bindinput="onInputRoomId" bindconfirm="onInputRoomId" bindblur="onInputRoomId" value="{{roomId}}"></input>
       </view>
+      <view class="rowWrapper flex-center-row">
+        <text class="h2"> - </text>
+        <text class="h2">注：请自行修改通道号</text>
+      </view>
       <view wx:if="{{demoMode !== 0}}" class="rowWrapper flex-center-row">
         <text class="h2">用户ID</text>
         <input placeholder-style='color:#A3D1E0' class="valueInput" type="number" placeholder='输入用户ID' bindinput="onInputUserId" bindconfirm="onInputUserId" bindblur="onInputUserId" value=""></input>
@@ -35,17 +39,6 @@
         <input class="h2" name="other" placeholder="请输入 AppID" type="text" bindinput="onInputAppID" bindconfirm="onInputAppID" bindblur="onInputAppID"/>
       </view>
       <view class="rowWrapper flex-center-row">
-        <checkbox-group bindchange="checkboxChangeCustomServer">
-          <label class="checkbox" wx:for="{{chkCustomServer}}">
-            <checkbox value="{{item.name}}" checked="{{isCustomServer}}" />
-            <text class="h2">{{item.display}} : </text>
-          </label>
-        </checkbox-group>
-        <view wx:if="{{isCustomServer}}">
-          <input class="h2" name="customServer" placeholder="请输入服务器域名" type="text" bindinput="onInputServer" bindconfirm="onInputServer" bindblur="onInputServer" value="{{customServer}}"/>
-        </view>
-      </view>
-      <view class="rowWrapper flex-center-row">
         <!--
         <checkbox-group bindchange="checkboxChangeAutoPush">
           <label class="checkbox" wx:for="{{chkPushOn}}">
@@ -56,13 +49,24 @@
         -->
         <checkbox-group bindchange="checkboxChangeAutoPull">
           <label class="checkbox" wx:for="{{chkAutoPull}}">
-            <checkbox value="{{item.name}}" checked="{{isAutoPull}}" />
+            <checkbox value="{{item.name}}" checked="{{item.checked}}" />
             <text class="h2">{{item.display}}</text>
           </label>
         </checkbox-group>
       </view>
       <view class="rowWrapper flex-center-row">
         <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">加入通道</button>
+      </view>
+      <view class="rowWrapper flex-center-row">
+        <checkbox-group bindchange="checkboxChangeCustomServer">
+          <label class="checkbox" wx:for="{{chkCustomServer}}">
+            <checkbox value="{{item.name}}" checked="{{isCustomServer}}" />
+            <text class="h2">{{item.display}} : </text>
+          </label>
+        </checkbox-group>
+        <view wx:if="{{isCustomServer}}">
+          <input class="h2" name="customServer" placeholder="请输入服务器域名" type="text" bindinput="onInputServer" bindconfirm="onInputServer" bindblur="onInputServer" value="{{customServer}}"/>
+        </view>
       </view>
     </view>
     <view class="footer flex-center-column">
