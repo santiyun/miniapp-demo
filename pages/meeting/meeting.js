@@ -3,6 +3,7 @@ const app = getApp();
 const Utils = require('../../utils/util.js');
 
 const TTTMAEngine = require('../../lib/3T_Miniapp_SDK_for_WeChat');
+// import * as TTTMAEngine from '../../lib/3T_Miniapp_SDK_for_WeChat';
 // import { Client, TTTLog } from '../../lib/3T_Miniapp_SDK_for_WeChat';
 
 // 
@@ -340,7 +341,7 @@ Page({
    * component life cycle event detached will be called, and
    * new media component life cycle event ready will then be called
    */
-  addMedia(mediaType, uid, cid, url, options) {
+  addMedia(mediaType, uid, cid, url, videoType, options) {
     Utils.log(`add media ${mediaType} ${cid} ${url}`);
     let media = this.data.media || [];
 
@@ -352,7 +353,8 @@ Page({
         uid: uid,
         cid: `${cid}`,
         holding: false,
-        url: url,
+		url: url,
+		videoType,
         left: 0,
         top: 0,
         width: 0,
@@ -367,7 +369,8 @@ Page({
         uid: uid,
         cid: `${cid}`,
         holding: false,
-        url: url,
+		url: url,
+		videoType,
         left: 0,
         top: 0,
         width: 0,
@@ -565,7 +568,7 @@ Page({
 
   onSubscribeClick: function() {
     if (this.data.selectUserId !== 0) {
-      this.subscribe(this.data.selectUserId, false);
+      this.subscribe(this.data.selectUserId, '0', false);
     } else {
       wx.showToast({
         title: '请从左侧列表中选择 userId',
@@ -590,7 +593,7 @@ Page({
     }
   },
 
-  subscribe: function(userId, isUpdate) {
+  subscribe: function(userId, videoType, isUpdate) {
     // 最多 7 路
     if (this.data.media.length >= MAX_USER) {
       wx.showToast({
@@ -655,7 +658,7 @@ Page({
         //if not existing, add new media
         let ts = new Date().getTime();
 
-        this.addMedia('player', data.userId, data.connectId, `${data.url}`, {
+        this.addMedia('player', data.userId, data.connectId, `${data.url}`, videoType, {
           key: ts,
           rotation: data.rotation
         });
@@ -681,12 +684,14 @@ Page({
       }
       //
     }).catch(e => {
-      Utils.log(`subscribe failed: ${e.code} ${e.reason}`);
+	  Utils.log(`subscribe failed: ${e.code} ${e.reason}`);
+	  /*
       wx.showToast({
         title: `拉流失败 -- ${JSON.stringify(e)}`,
         icon: 'none',
         duration: 5000
-      });
+	  });
+	  */
     });
   },
 
@@ -723,7 +728,7 @@ Page({
           continue;
 
         //
-        this.subscribe(item.uid, true);
+        this.subscribe(item.uid, item.videoType, true);
       }
 
       resolve();
@@ -849,7 +854,7 @@ Page({
         // first time init, add pusher media to view		
         let ts = new Date().getTime();
 
-        this.addMedia('pusher', this.uid, this.cid, url, {
+        this.addMedia('pusher', this.uid, this.cid, url, '0', {
           key: ts
         });
         // 
@@ -1656,13 +1661,20 @@ Page({
       (e) => {
         let userId = e.uid;
         const ts = new Date().getTime();
-        Utils.log(`event: stream-added -- uid: ${userId} this.autoPull: ${this.autoPull}`);
+        Utils.log(`event: stream-added -- ${JSON.stringify(e)} this.autoPull: ${this.autoPull}`);
 
         // 如果勾选了 自动拉流 ，则自动拉取该用户流
         if (this.autoPull) {
-          this.subscribe(userId, false);
+          this.subscribe(userId, e.videoType, false);
         }
-        // 
+		// 
+		
+        wx.showToast({
+			title: `stream-added - videoType: ${e.videoType} mediaType: ${e.mediaType}`,
+			// title: `session-status：${e.status}`,
+			icon: 'none',
+			duration: 5000
+		  });
       });
 
     /**

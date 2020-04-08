@@ -68,7 +68,7 @@ Page({
     // 入通道后，是否自动拉流
 	isAutoPull: true,
 	// demo version
-	demoVersion: '2.1.3-12003051',
+	demoVersion: '2.1.4-12003271',
 	// sdk version
 	masdkVersion: ''
   },

@@ -55,7 +55,11 @@ Component({
         // 通常 newVal 就是新设置的数据， oldVal 是旧数据
         Utils.log(`player url changed from ${oldVal} to ${newVal}, path: ${changedPath}`);
       }
-    }
+    },
+    videoType: {
+      type: String,
+      value: ""
+	}
   },
 
   /**

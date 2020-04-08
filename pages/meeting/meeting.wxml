@@ -5,7 +5,7 @@
       <ttt-pusher wx:if="{{item.type === 'pusher' && !item.holding}}" id="rtc-pusher" name="{{item.uid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" url="{{item.url}}" enableCamera="{{enableCamera}}"
         muted="{{muted}}" beauty="{{beauty}}" debug="{{debug}}" bindpushfailed="onPushFailed">
       </ttt-pusher>
-      <ttt-player wx:if="{{item.type === 'player' && !item.holding}}" id="rtc-player-{{item.cid}}" name="{{item.uid}}" cid="{{item.cid}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}"
+      <ttt-player wx:if="{{item.type === 'player' && !item.holding}}" id="rtc-player-{{item.cid}}" name="{{item.uid}}" cid="{{item.cid}}" videoType="{{item.videoType}}" x="{{item.left}}" y="{{item.top}}" width="{{item.width}}" height="{{item.height}}" debug="{{debug}}" url="{{item.url}}"
         bindpullfailed="onPullFailed">
       </ttt-player>
     </block>
