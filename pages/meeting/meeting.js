@@ -111,6 +111,8 @@ Page({
 	this.isCustom = (options.isCustom === 'true') ? true : false;
 	// 
 	this.isTest = (options.isTest === 'true') ? true : false;
+	// 
+	this.logSubmit = (options.logSubmit === 'true') ? true : false;
 
     Utils.log(`this.autoPull : ${this.autoPull} this.autoPush : ${this.autoPush}`);
     //
@@ -1292,12 +1294,14 @@ Page({
       let client = {}
 
       // Create Client
-      Utils.log(`Client`);
+      Utils.log(`initEngine ...`);
 
 	  // isTest 用来表明是否为 测试环境 -- true：测试环境；false：生产环境
 	  const miniappAuServer = this.customServer;
 	  // const appId = TEST_APPID;// APPID;// ;
 	  // TEST_APPID
+	  TTTMAEngine.TTTLog.setLogSubmit(Boolean(this.logSubmit));
+
       client = new TTTMAEngine.Client(appId, uid, isTest);
       // store TTT Engine 
       this.client = client;

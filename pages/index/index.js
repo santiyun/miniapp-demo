@@ -38,7 +38,7 @@ Page({
       display: '简易模式',
       checked: true
 	}],
-	appIDArray: ['a967ac491e3acf92eed5e1b5ba641ab7', 'test900572e02867fab8131651339518', '手动输入'],
+	appIDArray: ['a967ac491e3acf92eed5e1b5ba641ab7', 'test900572e02867fab8131651339518', '2e46af04f3a11cce249e414118e5072e', '手动输入'],
 	appIDIndex: 0,
 	appId: 'a967ac491e3acf92eed5e1b5ba641ab7',
     // 
@@ -67,6 +67,14 @@ Page({
     isAutoPush: true,
     // 入通道后，是否自动拉流
 	isAutoPull: true,
+	// 
+    chkLogSubmit: [{
+      name: 'LOG_SUBMIT',
+	  display: '日志',
+	  checked: true
+    }],
+	// 
+	logSubmit: true,
 	// demo version
 	demoVersion: '2.1.4-12003271',
 	// sdk version
@@ -81,6 +89,7 @@ Page({
 	let appId = 'a967ac491e3acf92eed5e1b5ba641ab7';
 	let roomId = '999000';
 	let isAutoPull = true;
+	let logSubmit = true;
 	let isCustomServer = false;
 	let customServer = '';
 	let userRole = 2;
@@ -110,6 +119,15 @@ Page({
 			// 
 		} else {
 			Utils.log('index page onLoad - getStorageSync(isAutoPull) no-data');
+		}
+		value = wx.getStorageSync('logSubmit');
+		if (value) {
+			Utils.log(`index page onLoad - getStorageSync(logSubmit) value: ${value}`);
+
+			logSubmit = (value === 'true');
+			// 
+		} else {
+			Utils.log('index page onLoad - getStorageSync(logSubmit) no-data');
 		}
 		// 
 		value = wx.getStorageSync('isCustomServer');
@@ -152,6 +170,7 @@ Page({
 		appId,
 		userRole,
 		isAutoPull,
+		logSubmit,
 		masdkVersion: `${JSON.stringify(TTTMAEngine.getVersion())}`
 	  });
 	  
@@ -236,6 +255,7 @@ Page({
         let autoPull = this.data.isAutoPull;
 		let autoPush = this.data.isAutoPush;
 		let isCustom = this.data.isCustomServer;
+		let logSubmit = this.data.logSubmit;
 
 		let isTest = false;
 
@@ -243,7 +263,7 @@ Page({
         userId = parseInt(userId);
 
         wx.navigateTo({
-          url: `../meeting/meeting?isCustom=${isCustom}&customServer=${customServer}&appId=${appId}&roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}&isTest=${isTest}`
+          url: `../meeting/meeting?isCustom=${isCustom}&customServer=${customServer}&appId=${appId}&roomId=${roomId}&userId=${userId}&role=${role}&autoPull=${autoPull}&autoPush=${autoPush}&isTest=${isTest}&logSubmit=${logSubmit}`
         });
     }
   },
@@ -290,6 +310,34 @@ Page({
     });
 
     Utils.log(`checkboxChangeAutoPush : ${this.data.isAutoPush}`);
+  },
+
+  checkboxChangeLogSubmit(e) {
+    let value = e.detail.value.toString();
+    let items = this.data.chkLogSubmit || [];
+
+    let logSubmit = false;
+
+    for (let i = 0; i < items.length; i++) {
+      let item = items[i];
+
+      if (value.search(`${item.name}`) !== -1) {
+        logSubmit = true;
+        break;
+      }
+    }
+
+	this.setData({ logSubmit });
+
+	//
+	try {
+		wx.setStorageSync('logSubmit', logSubmit ? 'true' : 'false');
+	  } catch (e) {
+		Utils.log(`checkboxChangeLogSubmit failed. e: ${JSON.stringify(e)}`);
+	  }
+
+
+    Utils.log(`checkboxChangeLogSubmit : ${this.data.logSubmit}`);
   },
 
   checkboxChangeAutoPull(e) {
@@ -367,15 +415,15 @@ Page({
     // console.log('select: ', this.data.casArray[e.detail.value])
     const index = e.detail.value;
 
-    if (e.detail.value == 2) {
+    // 
+    let items = this.data.appIDArray || [];
+
+    if (index == items.length - 1) {
       this.setData({ customAppID: true });
     } else {
       this.setData({ customAppID: false });
     }
     this.setData({ appIDIndex: index });
-
-    // 
-    let items = this.data.appIDArray || [];
 
     if (index < items.length - 1) {
 	  let appId = this.data.appIDArray[index];

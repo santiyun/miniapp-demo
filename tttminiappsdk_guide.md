@@ -20,8 +20,7 @@
 2. 请确保在微信公众平台账号的开发设置中，设置以下域名请求权限：
 
 [request合法域名]中配置如下：
- * https://apiusercenter.3ttech.cn
- * https://log.wushuangtech.com:15100
+ * https://logst.3ttech.cn:15200
 
 [socket合法域名]中配置如下：
  * wss://webdispatch.3ttech.cn
@@ -33,8 +32,6 @@
  * wss://webmedia6.3ttech.cn
  * wss://webmedia7.3ttech.cn
  * wss://webmedia8.3ttech.cn
- * wss://shenzhen1.3ttech.cn
- * wss://miniapp1.3ttech.cn
 
 1. 微信小程序组件
 

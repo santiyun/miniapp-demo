@@ -53,6 +53,12 @@
             <text class="h2">{{item.display}}</text>
           </label>
         </checkbox-group>
+        <checkbox-group bindchange="checkboxChangeLogSubmit">
+          <label class="checkbox" wx:for="{{chkLogSubmit}}">
+            <checkbox value="{{item.name}}" checked="{{item.checked}}" />
+            <text class="h2">{{item.display}}</text>
+          </label>
+        </checkbox-group>
       </view>
       <view class="rowWrapper flex-center-row">
         <button plain="true" bindtap="onJoinClick" disabled="{{disableJoin}}" class="commonBtn">加入通道</button>
