@@ -5,17 +5,17 @@ const AU_SERVER = '';// 'gzeduservice.3ttech.cn'; // 'hlwypcx.choicehc.cn';//
 
 if (APPID === '')
 {
-  wx.showToast(
-    {
-      title: `请在config.js中提供正确的appid`,
-      icon: 'none',
-      duration: 5000
-    });
+	wx.showToast(
+		{
+			title: `请在config.js中提供正确的appid`,
+			icon: 'none',
+			duration: 5000
+		});
 }
 
 module.exports = {
-  APPID        : APPID,
-  TEST_APPID   : TEST_APPID,
-  IPLOC_SERVER : IPLOC_SERVER,
-  AU_SERVER    : AU_SERVER
+	APPID: APPID,
+	TEST_APPID: TEST_APPID,
+	IPLOC_SERVER: IPLOC_SERVER,
+	AU_SERVER: AU_SERVER
 }

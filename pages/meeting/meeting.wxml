@@ -50,10 +50,18 @@
   <view class="footer flex-center-column">
     <!-- 水平方向的按钮 -->
     <view style="width:100%; height: 50px; position:absolute;bottom:5px;">
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/{{(audioPushing || videoPushing)?'unpush':'push'}}.png" bindtap='onPublishClick'></image>
+        <view class='bottom_text'>{{(audioPushing || videoPushing)?'停推流':'开推流'}}</view>
+      </view>
       <!--
       <view class='bottom_box'>
-        <image class="bottom_button" src="./Resources/{{pushing?'unpush':'push'}}.png" bindtap='onPublishClick'></image>
-        <view class='bottom_text'>{{pushing?'停推流':'开推流'}}</view>
+        <image class="bottom_button" src="./Resources/{{audioPushing?'audio-dis':'audio'}}.png" bindtap='onPublishAudioClick'></image>
+        <view class='bottom_text'>{{audioPushing?'停音频':'开音频'}}</view>
+      </view>
+      <view class='bottom_box'>
+        <image class="bottom_button" src="./Resources/{{videoPushing?'video-dis':'video'}}.png" bindtap='onPublishVideoClick'></image>
+        <view class='bottom_text'>{{videoPushing?'停视频':'开视频'}}</view>
       </view>
 	  -->
       <view class='bottom_box'>

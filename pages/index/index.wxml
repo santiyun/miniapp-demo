@@ -2,8 +2,8 @@
 <view class=" base-bg">
   <view class="content flex-center-column">
     <view class="logo-section flex-center-column">
-      <image class="logo" style="width: 300rpx; height: 200rpx;" mode="aspectFit" src="../../images/logo.png"></image>
-      <text class="h1">三体云demo</text>
+      <image class="logo-avatar" src="./Resources/logo-white.png" background-size="cover"></image>
+      <text class="logo-name">三体云</text>
     </view>
     <view class="form-section flex-center-column">
       <view class="rowWrapper flex-center-row">
@@ -39,23 +39,21 @@
         <input class="h2" name="other" placeholder="请输入 AppID" type="text" bindinput="onInputAppID" bindconfirm="onInputAppID" bindblur="onInputAppID"/>
       </view>
       <view class="rowWrapper flex-center-row">
-        <!--
         <checkbox-group bindchange="checkboxChangeAutoPush">
-          <label class="checkbox" wx:for="{{chkPushOn}}">
-            <checkbox value="{{item.name}}" checked="{{item.checked}}" />
+          <label class="checkbox" wx:for="{{chkAutoPush}}">
+            <checkbox value="{{item.name}}" checked="{{isAutoPush}}" />
             <text class="h2">{{item.display}}</text>
           </label>
         </checkbox-group>
-        -->
         <checkbox-group bindchange="checkboxChangeAutoPull">
           <label class="checkbox" wx:for="{{chkAutoPull}}">
-            <checkbox value="{{item.name}}" checked="{{item.checked}}" />
+            <checkbox value="{{item.name}}" checked="{{isAutoPull}}" />
             <text class="h2">{{item.display}}</text>
           </label>
         </checkbox-group>
         <checkbox-group bindchange="checkboxChangeLogSubmit">
           <label class="checkbox" wx:for="{{chkLogSubmit}}">
-            <checkbox value="{{item.name}}" checked="{{item.checked}}" />
+            <checkbox value="{{item.name}}" checked="{{logSubmit}}" />
             <text class="h2">{{item.display}}</text>
           </label>
         </checkbox-group>
@@ -84,8 +82,6 @@
         </label>
       </checkbox-group>
 	  -->
-      <image class="logo-avatar" src="./Resources/logo-white.png" background-size="cover"></image>
-      <text class="logo-name">三体云</text>
       <text>Powered by 3ttech.</text>
       <text>Demo: {{demoVersion}}</text>
       <text>Base SDK: {{masdkVersion}}</text>
